@@ -1,0 +1,10 @@
+{
+  "name": "Cân Lúa Đồng Rộng - Sổ Cân & AI Nông Nghiệp",
+  "description": "Ứng dụng cân lúa thu hoạch, tính tiền lúa, trừ bì, trừ ẩm, quét ảnh giấy cân bằng AI Gemini và trợ lý giá lúa ĐBSCL cho nông dân.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
