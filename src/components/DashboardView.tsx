@@ -92,7 +92,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       totalBags += calc.totalBags;
       totalDrafts += calc.totalDrafts;
       totalGrossKg += calc.grossWeight;
-      totalNetKg += calc.netWeight;
+      totalNetKg += (calc.finalNetWeight || 0);
       totalRevenue += calc.totalAmount;
       totalDeposit += calc.depositAmount;
       totalRemaining += calc.remainingPayable;
@@ -128,7 +128,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       const calc = s.calculated || calculateTotals(s.bagWeights, s);
       const current = map.get(type) || { riceType: type, netKg: 0, revenue: 0, bags: 0, count: 0 };
 
-      current.netKg += calc.netWeight;
+      current.netKg += (calc.finalNetWeight || 0);
       current.revenue += calc.totalAmount;
       current.bags += calc.totalBags;
       current.count += 1;
@@ -148,7 +148,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       const calc = s.calculated || calculateTotals(s.bagWeights, s);
       const current = map.get(dateStr) || { date: dateStr, netKg: 0, revenue: 0, bags: 0, sessionsCount: 0 };
 
-      current.netKg += calc.netWeight;
+      current.netKg += (calc.finalNetWeight || 0);
       current.revenue += calc.totalAmount;
       current.bags += calc.totalBags;
       current.sessionsCount += 1;
@@ -168,7 +168,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       const calc = s.calculated || calculateTotals(s.bagWeights, s);
       const current = map.get(name) || { name, phone: s.farmerPhone, totalNetKg: 0, totalAmount: 0, sessionCount: 0 };
 
-      current.totalNetKg += calc.netWeight;
+      current.totalNetKg += (calc.finalNetWeight || 0);
       current.totalAmount += calc.totalAmount;
       current.sessionCount += 1;
 
@@ -186,7 +186,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       const calc = s.calculated || calculateTotals(s.bagWeights, s);
       const current = map.get(name) || { name, totalNetKg: 0, totalAmount: 0, sessionCount: 0 };
 
-      current.totalNetKg += calc.netWeight;
+      current.totalNetKg += (calc.finalNetWeight || 0);
       current.totalAmount += calc.totalAmount;
       current.sessionCount += 1;
 
@@ -624,7 +624,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <td className="p-2.5 font-bold text-amber-600 dark:text-amber-400">{s.riceType}</td>
                       <td className="p-2.5 text-right font-bold">{calc.totalBags} bao</td>
                       <td className="p-2.5 text-right font-black text-amber-700 dark:text-amber-400">
-                        {formatNumber(calc.netWeight)} kg
+                        {formatNumber(calc.finalNetWeight)} kg
                       </td>
                       <td className="p-2.5 text-right font-extrabold text-emerald-600 dark:text-emerald-400">
                         {formatVND(calc.totalAmount)}

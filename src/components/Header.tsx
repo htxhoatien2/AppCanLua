@@ -3,11 +3,12 @@ import React from 'react';
 interface HeaderProps {
   darkMode: boolean;
   setDarkMode: (val: boolean) => void;
-  activeTab: 'weighing' | 'history' | 'ai_advisor' | 'yield' | 'dashboard';
-  setActiveTab: (tab: 'weighing' | 'history' | 'ai_advisor' | 'yield' | 'dashboard') => void;
+  activeTab: 'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard';
+  setActiveTab: (tab: 'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard') => void;
   bagCount: number;
   historyCount: number;
   onNewSession: () => void;
+  isCloudSync?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -18,6 +19,7 @@ export const Header: React.FC<HeaderProps> = ({
   bagCount,
   historyCount,
   onNewSession,
+  isCloudSync = false,
 }) => {
   return (
     <header className={`sticky top-0 z-40 border-b shadow-md ${
@@ -31,9 +33,15 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <h1 className="font-extrabold text-base sm:text-lg leading-tight flex items-center gap-2">
               CÂN LÚA ĐỒNG RỘNG
-              <span className="text-[10px] bg-amber-900/80 text-amber-200 px-2.5 py-0.5 rounded-full font-mono border border-amber-500/40 uppercase tracking-wider">
-                ✨ AI Gemini
-              </span>
+              {isCloudSync ? (
+                <span className="text-[10px] bg-emerald-700 text-emerald-100 px-2 py-0.5 rounded-full font-bold border border-emerald-400/40 uppercase tracking-wider flex items-center gap-1">
+                  <span>☁️</span> Supabase Cloud
+                </span>
+              ) : (
+                <span className="text-[10px] bg-amber-900/80 text-amber-200 px-2 py-0.5 rounded-full font-mono border border-amber-500/40 uppercase tracking-wider">
+                  💾 Local Offline
+                </span>
+              )}
             </h1>
             <p className="text-xs text-amber-100/90 font-medium">
               Sổ Cân Lúa Nông Nghiệp & Tính Tiền Thông Minh

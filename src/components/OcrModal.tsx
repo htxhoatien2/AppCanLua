@@ -7,6 +7,61 @@ interface OcrModalProps {
   darkMode: boolean;
 }
 
+/**
+ * Client-Side Image Compressor using HTML5 Canvas
+ * Resizes large camera photos to max 1280px JPG (~200KB - 400KB)
+ */
+function compressImageFile(
+  file: File,
+  maxWidth: number = 1280,
+  maxHeight: number = 1280,
+  quality: number = 0.82
+): Promise<{ compressedBase64: string; originalSizeKb: number; compressedSizeKb: number }> {
+  return new Promise((resolve, reject) => {
+    const originalSizeKb = Math.round(file.size / 1024);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          return resolve({
+            compressedBase64: event.target?.result as string,
+            originalSizeKb,
+            compressedSizeKb: originalSizeKb,
+          });
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        const compressedSizeKb = Math.round((compressedBase64.length * 3) / 4 / 1024);
+
+        resolve({ compressedBase64, originalSizeKb, compressedSizeKb });
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+}
+
 export const OcrModal: React.FC<OcrModalProps> = ({
   onApplyOcr,
   onClose,
@@ -14,23 +69,35 @@ export const OcrModal: React.FC<OcrModalProps> = ({
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageStats, setImageStats] = useState<{ origKb: number; compKb: number } | null>(null);
+  const [compressing, setCompressing] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [ocrData, setOcrData] = useState<OcrResult | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     if (!file || !file.type.startsWith('image/')) {
       setErrorMsg('Vui lòng chọn một tệp hình ảnh (JPG, PNG).');
       return;
     }
     setErrorMsg(null);
     setSelectedFile(file);
+    setCompressing(true);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImagePreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const { compressedBase64, originalSizeKb, compressedSizeKb } = await compressImageFile(file);
+      setImagePreview(compressedBase64);
+      setImageStats({ origKb: originalSizeKb, compKb: compressedSizeKb });
+    } catch (e) {
+      // Fallback to raw reader if compression fails
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setImagePreview(ev.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setCompressing(false);
+    }
   };
 
   const handleProcessImage = async () => {
@@ -44,7 +111,7 @@ export const OcrModal: React.FC<OcrModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageBase64: imagePreview,
-          mimeType: selectedFile?.type || 'image/jpeg',
+          mimeType: 'image/jpeg',
         }),
       });
 
@@ -110,6 +177,7 @@ export const OcrModal: React.FC<OcrModalProps> = ({
                 onClick={() => {
                   setImagePreview(null);
                   setSelectedFile(null);
+                  setImageStats(null);
                   setOcrData(null);
                 }}
                 className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2.5 py-1 rounded-full font-bold"
@@ -118,10 +186,27 @@ export const OcrModal: React.FC<OcrModalProps> = ({
               </button>
             </div>
 
+            {imageStats && (
+              <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs flex justify-between items-center text-emerald-700 dark:text-emerald-300 font-bold">
+                <span className="flex items-center gap-1">
+                  <span>⚡</span> Đã tự động tối ưu & nén ảnh:
+                </span>
+                <span>
+                  {imageStats.origKb > 1024 ? `${(imageStats.origKb / 1024).toFixed(1)}MB` : `${imageStats.origKb}KB`} ➔ <strong className="underline text-emerald-800 dark:text-emerald-200">{imageStats.compKb}KB</strong>
+                </span>
+              </div>
+            )}
+
+            {compressing && (
+              <div className="p-2 text-center text-xs text-amber-600 font-bold animate-pulse">
+                ⏳ Đang tối ưu dung lượng ảnh...
+              </div>
+            )}
+
             {!ocrData && (
               <button
                 onClick={handleProcessImage}
-                disabled={loading}
+                disabled={loading || compressing}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold py-3 px-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2"
               >
                 <span>{loading ? '⏳ AI đang quét chữ & con số...' : '✨ Bắt Đầu Quét Bằng AI Gemini'}</span>

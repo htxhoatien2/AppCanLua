@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { WeighingSession, OcrResult, WeighingEntry } from './types';
 import { calculateTotals, generateZaloShareText } from './utils/formatters';
 import { playBase64PcmAudio } from './utils/audioUtils';
+import { fetchSessions, saveSession as saveSessionToService, deleteSession as deleteSessionFromService } from './services/sessionService';
+import { isSupabaseConfigured } from './lib/supabase';
 
 import { Header } from './components/Header';
 import { FarmerInfoForm } from './components/FarmerInfoForm';
@@ -16,11 +18,10 @@ import { DashboardView } from './components/DashboardView';
 import { OcrModal } from './components/OcrModal';
 import { SmartParseModal } from './components/SmartParseModal';
 
-const STORAGE_KEY = 'rice_weighing_history_v2';
-
 export default function App() {
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard'>('weighing');
+  const [isCloudSync, setIsCloudSync] = useState<boolean>(isSupabaseConfigured);
 
   // Current session being edited
   const [sessionInfo, setSessionInfo] = useState<WeighingSession>({
@@ -58,16 +59,14 @@ export default function App() {
   const [ttsPlaying, setTtsPlaying] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Load history on mount
+  // Load history on mount from Supabase / LocalStorage
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setSavedSessions(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error('Failed to parse saved sessions', e);
+    async function loadData() {
+      const result = await fetchSessions();
+      setSavedSessions(result.sessions);
+      setIsCloudSync(result.isCloud);
     }
+    loadData();
   }, []);
 
   const showToast = (msg: string) => {
@@ -181,8 +180,8 @@ export default function App() {
   // Calculated totals
   const currentTotals = calculateTotals(sessionInfo.bagWeights, sessionInfo);
 
-  // Save Session to Local History
-  const handleSaveSession = () => {
+  // Save Session to Supabase Cloud / Local History
+  const handleSaveSession = async () => {
     if (sessionInfo.bagWeights.length === 0) {
       return showToast('Chưa có bao lúa nào trong phiếu cân!');
     }
@@ -197,6 +196,9 @@ export default function App() {
       createdAt: new Date().toLocaleString('vi-VN'),
     };
 
+    const res = await saveSessionToService(completedSession);
+    
+    // Update local state UI
     const existingIdx = savedSessions.findIndex((s) => s.id === completedSession.id);
     let updatedHistory = [...savedSessions];
     if (existingIdx >= 0) {
@@ -204,23 +206,23 @@ export default function App() {
     } else {
       updatedHistory = [completedSession, ...savedSessions];
     }
-
     setSavedSessions(updatedHistory);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
-    } catch (e) {
-      console.error('LocalStorage write error', e);
-    }
+    setIsCloudSync(res.isCloud);
 
-    showToast('💾 Đã lưu phiếu cân vào sổ thành công!');
+    if (res.isCloud) {
+      showToast('☁️ Đã đồng bộ phiếu cân lên Supabase Cloud thành công!');
+    } else {
+      showToast('💾 Đã lưu phiếu cân vào máy (LocalStorage)!');
+    }
   };
 
   // Delete from History
-  const handleDeleteSession = (id: string) => {
+  const handleDeleteSession = async (id: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa phiếu cân này khỏi sổ?')) {
+      const res = await deleteSessionFromService(id);
       const updated = savedSessions.filter((s) => s.id !== id);
       setSavedSessions(updated);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      setIsCloudSync(res.isCloud);
       showToast('Đã xóa phiếu cân khỏi sổ!');
     }
   };
@@ -356,6 +358,7 @@ export default function App() {
         bagCount={currentTotals.totalBags}
         historyCount={savedSessions.length}
         onNewSession={handleNewSession}
+        isCloudSync={isCloudSync}
       />
 
       {/* Main View Container */}
