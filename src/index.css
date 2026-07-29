@@ -2,34 +2,65 @@
 
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
   }
   
-  h1, h2, h3, h4, .font-lexend {
-    font-family: 'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif;
+  h1, h2, h3, h4, h5, h6, .font-lexend {
+    font-family: 'Lexend', system-ui, sans-serif;
   }
 }
 
-/* Custom Scrollbar */
+/* Custom Emerald Agriculture Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.3);
+  background: rgba(2, 44, 34, 0.5);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(217, 119, 6, 0.4);
+  background: rgba(16, 185, 129, 0.4);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(217, 119, 6, 0.8);
+  background: rgba(16, 185, 129, 0.8);
 }
 
-/* Print Style Adjustments */
+/* Pulse Glow & Emerald Animations */
+@keyframes emeraldGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3), inset 0 0 10px rgba(16, 185, 129, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.6), inset 0 0 15px rgba(16, 185, 129, 0.2);
+  }
+}
+
+.animate-emerald-glow {
+  animation: emeraldGlow 3s infinite ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Print Utilities */
 @media print {
   body {
     background-color: white !important;
@@ -39,23 +70,9 @@
     display: none !important;
   }
   #printable-receipt {
-    box-shadow: none !important;
     border: none !important;
+    box-shadow: none !important;
     padding: 0 !important;
     width: 100% !important;
   }
-}
-
-/* Micro Animations */
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(245, 158, 11, 0.6);
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 3s infinite ease-in-out;
 }

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { WeighingSession, OcrResult, User } from './types';
+import { WeighingSession, OcrResult, User, AdminConfig } from './types';
 import { calculateTotals, generateZaloShareText } from './utils/formatters';
 import { playBase64PcmAudio } from './utils/audioUtils';
 import { fetchSessions, saveSession as saveSessionToService, deleteSession as deleteSessionFromService } from './services/sessionService';
+import { fetchAdminConfig, saveAdminConfig, DEFAULT_ADMIN_CONFIG } from './services/adminService';
 import { isSupabaseConfigured } from './lib/supabase';
-import { HTX_INFO } from './data/riceData';
 
-import { Header } from './components/Header';
+import { Sidebar } from './components/Sidebar';
 import { FarmerInfoForm } from './components/FarmerInfoForm';
 import { WeighingPanel } from './components/WeighingPanel';
 import { BagList } from './components/BagList';
@@ -16,6 +16,7 @@ import { HistoryList } from './components/HistoryList';
 import { AiAdvisor } from './components/AiAdvisor';
 import { YieldCalculatorModal } from './components/YieldCalculatorModal';
 import { DashboardView } from './components/DashboardView';
+import { AdminManagementView } from './components/AdminManagementView';
 import { OcrModal } from './components/OcrModal';
 import { SmartParseModal } from './components/SmartParseModal';
 import { AuthModal } from './components/AuthModal';
@@ -24,8 +25,11 @@ const USER_STORAGE_KEY = 'htx_hoatien2_current_user';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard'>('weighing');
+  const [activeTab, setActiveTab] = useState<'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard' | 'admin'>('weighing');
   const [isCloudSync, setIsCloudSync] = useState<boolean>(isSupabaseConfigured);
+
+  // Admin Config State
+  const [adminConfig, setAdminConfig] = useState<AdminConfig>(DEFAULT_ADMIN_CONFIG);
 
   // User State
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -33,11 +37,10 @@ export default function App() {
       const stored = localStorage.getItem(USER_STORAGE_KEY);
       if (stored) return JSON.parse(stored);
     } catch (e) {}
-    // Mặc định Cán bộ Phạm Công Tuân
     return {
       id: 'pham_cong_tuan',
       username: 'pham_cong_tuan',
-      fullName: HTX_INFO.author,
+      fullName: 'Phạm Công Tuân',
       role: 'admin',
     };
   });
@@ -48,13 +51,13 @@ export default function App() {
   const [sessionInfo, setSessionInfo] = useState<WeighingSession>({
     id: Date.now().toString(),
     userId: currentUser?.id,
-    operatorName: currentUser?.fullName || HTX_INFO.author,
+    operatorName: currentUser?.fullName || 'Phạm Công Tuân',
     farmerName: '',
     farmerPhone: '',
     truckInfo: 'Xe Đội 1 HTX Hòa Tiến 2',
     truckPhone: '',
     location: 'Cánh đồng Gò Tháp',
-    riceType: 'HT1',
+    riceType: 'HG12',
     unitPrice: 8500,
 
     tareType: 'per_bag',
@@ -91,15 +94,26 @@ export default function App() {
   const [ttsPlaying, setTtsPlaying] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Load history on mount
+  // Load history & admin config on mount
   useEffect(() => {
     async function loadData() {
-      const result = await fetchSessions();
-      setSavedSessions(result.sessions);
-      setIsCloudSync(result.isCloud);
+      const [sessionsRes, configRes] = await Promise.all([
+        fetchSessions(),
+        fetchAdminConfig(),
+      ]);
+      setSavedSessions(sessionsRes.sessions);
+      setIsCloudSync(sessionsRes.isCloud);
+      setAdminConfig(configRes);
     }
     loadData();
   }, []);
+
+  // Handle Save Admin Config
+  const handleSaveAdminConfig = async (newConfig: AdminConfig) => {
+    setAdminConfig(newConfig);
+    await saveAdminConfig(newConfig);
+    showToast('⚙️ Đã lưu và đồng bộ cấu hình Admin!');
+  };
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
@@ -210,14 +224,14 @@ export default function App() {
     setSessionInfo({
       id: Date.now().toString(),
       userId: currentUser?.id,
-      operatorName: currentUser?.fullName || HTX_INFO.author,
+      operatorName: currentUser?.fullName || 'Phạm Công Tuân',
       farmerName: '',
       farmerPhone: '',
-      truckInfo: 'Xe Đội 1 HTX Hòa Tiến 2',
+      truckInfo: adminConfig.trucks[0] || 'Xe Đội 1 HTX Hòa Tiến 2',
       truckPhone: '',
-      location: 'Cánh đồng Gò Tháp',
-      riceType: 'HT1',
-      unitPrice: 8500,
+      location: adminConfig.locations[0] || 'Cánh đồng Gò Tháp',
+      riceType: adminConfig.varieties[0]?.name || 'HG12',
+      unitPrice: adminConfig.varieties[0]?.defaultPrice || 8500,
       tareType: 'per_bag',
       tarePerBag: 0.1,
       tareFixedTotal: 0,
@@ -252,7 +266,7 @@ export default function App() {
       ...sessionInfo,
       id: sessionInfo.id || Date.now().toString(),
       userId: currentUser?.id,
-      operatorName: sessionInfo.operatorName || currentUser?.fullName || HTX_INFO.author,
+      operatorName: sessionInfo.operatorName || currentUser?.fullName || 'Phạm Công Tuân',
       calculated: currentTotals,
       createdAt: new Date().toLocaleString('vi-VN'),
     };
@@ -398,9 +412,9 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen ${
+    <div className={`min-h-screen flex flex-col lg:flex-row ${
       darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-100/90 text-slate-900'
-    } transition-colors duration-300 pb-16`}>
+    } transition-colors duration-300`}>
       {/* Toast Notification */}
       {toastMsg && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-5 py-3 rounded-full shadow-2xl font-lexend font-bold flex items-center gap-2 text-xs sm:text-sm animate-bounce border border-emerald-400">
@@ -409,141 +423,152 @@ export default function App() {
         </div>
       )}
 
-      {/* Main App Bar Header */}
-      <Header
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
+      {/* Sidebar Navigation */}
+      <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         bagCount={currentTotals.totalBags}
         historyCount={savedSessions.length}
-        onNewSession={handleNewSession}
-        isCloudSync={isCloudSync}
         currentUser={currentUser}
+        adminConfig={adminConfig}
         onOpenAuth={() => setShowAuthModal(true)}
         onLogout={handleLogout}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
       />
 
-      {/* Main View Container */}
-      <main className="max-w-5xl mx-auto px-3 sm:px-4 py-4">
-        {/* TAB 1: WEIGHING PANEL */}
-        {activeTab === 'weighing' && (
-          <div className="space-y-4">
-            <FarmerInfoForm
-              sessionInfo={sessionInfo}
-              setSessionInfo={setSessionInfo}
-              darkMode={darkMode}
-              onNewSession={handleNewSession}
-            />
+      {/* Main Body Content View */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-6 py-5">
+          {/* TAB 1: WEIGHING PANEL */}
+          {activeTab === 'weighing' && (
+            <div className="space-y-4">
+              <FarmerInfoForm
+                sessionInfo={sessionInfo}
+                setSessionInfo={setSessionInfo}
+                adminConfig={adminConfig}
+                darkMode={darkMode}
+                onNewSession={handleNewSession}
+              />
 
-            <WeighingPanel
-              currentWeight={currentWeight}
-              setCurrentWeight={setCurrentWeight}
-              onAddWeight={handleAddWeight}
-              onOpenOcr={() => setShowOcrModal(true)}
-              onOpenSmartParse={() => setShowSmartModal(true)}
-              onOpenBulkModal={() => setShowSmartModal(true)}
-              bagCount={currentTotals.totalBags}
-              draftCount={currentTotals.totalDrafts}
-              darkMode={darkMode}
-            />
+              <WeighingPanel
+                currentWeight={currentWeight}
+                setCurrentWeight={setCurrentWeight}
+                onAddWeight={handleAddWeight}
+                onOpenOcr={() => setShowOcrModal(true)}
+                onOpenSmartParse={() => setShowSmartModal(true)}
+                onOpenBulkModal={() => setShowSmartModal(true)}
+                bagCount={currentTotals.totalBags}
+                draftCount={currentTotals.totalDrafts}
+                darkMode={darkMode}
+              />
 
-            <BagList
-              bagWeights={sessionInfo.bagWeights}
-              onRemoveWeight={handleRemoveWeight}
-              onClearAll={handleClearAllBags}
-              onUpdateWeight={handleUpdateWeight}
-              darkMode={darkMode}
-            />
+              <BagList
+                bagWeights={sessionInfo.bagWeights}
+                onRemoveWeight={handleRemoveWeight}
+                onClearAll={handleClearAllBags}
+                onUpdateWeight={handleUpdateWeight}
+                darkMode={darkMode}
+              />
 
-            <SummaryCard
-              sessionInfo={sessionInfo}
-              totals={currentTotals}
-              onSaveSession={handleSaveSession}
-              onSpeakTts={handleSpeakTts}
-              ttsLoading={ttsLoading}
-              ttsPlaying={ttsPlaying}
-              onCopyZalo={() => handleCopyZalo()}
-              onViewReceipt={() => {
-                setSelectedReceiptSession({ ...sessionInfo, calculated: currentTotals });
+              <SummaryCard
+                sessionInfo={sessionInfo}
+                totals={currentTotals}
+                onSaveSession={handleSaveSession}
+                onSpeakTts={handleSpeakTts}
+                ttsLoading={ttsLoading}
+                ttsPlaying={ttsPlaying}
+                onCopyZalo={() => handleCopyZalo()}
+                onViewReceipt={() => {
+                  setSelectedReceiptSession({ ...sessionInfo, calculated: currentTotals });
+                  setActiveTab('receipt');
+                }}
+                onOpenYieldModal={() => setShowYieldModal(true)}
+                darkMode={darkMode}
+              />
+            </div>
+          )}
+
+          {/* TAB 2: HISTORY LIST */}
+          {activeTab === 'history' && (
+            <HistoryList
+              sessions={savedSessions}
+              onSelectSession={(s) => {
+                setSelectedReceiptSession(s);
                 setActiveTab('receipt');
               }}
-              onOpenYieldModal={() => setShowYieldModal(true)}
+              onLoadSessionToEdit={handleLoadSessionToEdit}
+              onDeleteSession={handleDeleteSession}
+              onCopyZalo={(s) => handleCopyZalo(s)}
               darkMode={darkMode}
             />
-          </div>
-        )}
+          )}
 
-        {/* TAB 2: HISTORY LIST */}
-        {activeTab === 'history' && (
-          <HistoryList
-            sessions={savedSessions}
-            onSelectSession={(s) => {
-              setSelectedReceiptSession(s);
-              setActiveTab('receipt');
-            }}
-            onLoadSessionToEdit={handleLoadSessionToEdit}
-            onDeleteSession={handleDeleteSession}
-            onCopyZalo={(s) => handleCopyZalo(s)}
-            darkMode={darkMode}
-          />
-        )}
+          {/* TAB 3: AI AGRICULTURAL ADVISOR */}
+          {activeTab === 'ai_advisor' && (
+            <AiAdvisor darkMode={darkMode} />
+          )}
 
-        {/* TAB 3: AI AGRICULTURAL ADVISOR */}
-        {activeTab === 'ai_advisor' && (
-          <AiAdvisor darkMode={darkMode} />
-        )}
+          {/* TAB 4: DASHBOARD REPORTING */}
+          {activeTab === 'dashboard' && (
+            <DashboardView
+              sessions={savedSessions}
+              darkMode={darkMode}
+              onSelectSession={(s) => {
+                setSelectedReceiptSession(s);
+                setActiveTab('receipt');
+              }}
+            />
+          )}
 
-        {/* TAB 4: DASHBOARD REPORTING */}
-        {activeTab === 'dashboard' && (
-          <DashboardView
-            sessions={savedSessions}
-            darkMode={darkMode}
-            onSelectSession={(s) => {
-              setSelectedReceiptSession(s);
-              setActiveTab('receipt');
-            }}
-          />
-        )}
-
-        {/* TAB 4: YIELD CALCULATOR PAGE */}
-        {activeTab === 'yield' && (
-          <div className="space-y-4">
-            <div className={`p-6 rounded-3xl border shadow-xl ${
-              darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-amber-200'
-            }`}>
-              <h2 className="font-lexend font-black text-lg text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-2">
-                📊 BẢNG TÍNH NĂNG SUẤT LÚA SÀO/MẪU TRUNG BỘ (ĐÀ NẴNG)
-              </h2>
-              <p className="text-xs text-slate-500 mb-4">
-                Chuyển đổi sản lượng kg từ phiếu cân thành năng suất kg / Sào Trung Bộ (500m2), Mẫu Trung Bộ (5.000m2), Tấn/ha và dự tính lợi nhuận ròng.
-              </p>
-              <button
-                onClick={() => setShowYieldModal(true)}
-                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-lexend font-black py-3.5 px-6 rounded-2xl shadow-lg border border-amber-400/40 transition-all text-sm"
-              >
-                Mở Máy Tính Năng Suất Sào/Mẫu
-              </button>
+          {/* TAB 5: YIELD CALCULATOR PAGE */}
+          {activeTab === 'yield' && (
+            <div className="space-y-4">
+              <div className={`p-6 rounded-3xl border shadow-xl ${
+                darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-emerald-200'
+              }`}>
+                <h2 className="font-lexend font-black text-lg text-emerald-700 dark:text-emerald-400 mb-2 flex items-center gap-2">
+                  📊 BẢNG TÍNH NĂNG SUẤT LÚA SÀO/MẪU TRUNG BỘ (ĐÀ NẴNG)
+                </h2>
+                <p className="text-xs text-slate-500 mb-4 font-medium">
+                  Chuyển đổi sản lượng kg từ phiếu cân thành năng suất kg / Sào Trung Bộ (500m2), Mẫu Trung Bộ (5.000m2), Tấn/ha và dự tính lợi nhuận ròng.
+                </p>
+                <button
+                  onClick={() => setShowYieldModal(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-lexend font-black py-3.5 px-6 rounded-2xl shadow-lg transition-all text-sm"
+                >
+                  Mở Máy Tính Năng Suất Sào/Mẫu
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* TAB 5: RECEIPT VIEW */}
-        {activeTab === 'receipt' && selectedReceiptSession && (
-          <ReceiptView
-            session={selectedReceiptSession}
-            onBack={() => setActiveTab('weighing')}
-            onCopyZalo={() => handleCopyZalo(selectedReceiptSession)}
-            darkMode={darkMode}
-          />
-        )}
+          {/* TAB 6: ADMIN MANAGEMENT PAGE */}
+          {activeTab === 'admin' && currentUser?.role === 'admin' && (
+            <AdminManagementView
+              config={adminConfig}
+              onSaveConfig={handleSaveAdminConfig}
+              darkMode={darkMode}
+            />
+          )}
 
-        {/* Footer Copyright & Author Info */}
-        <footer className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500 py-4 border-t border-slate-200/80 dark:border-slate-800 space-y-1">
-          <p className="font-bold text-slate-600 dark:text-slate-300">🌾 {HTX_INFO.name}</p>
-          <p>Tác giả phần mềm: <strong>{HTX_INFO.author}</strong> • 📞 ĐT: <a href={`tel:${HTX_INFO.phone}`} className="font-semibold hover:underline text-amber-600 dark:text-amber-400">{HTX_INFO.phone}</a> • ✉️ Email: <a href={`mailto:${HTX_INFO.email}`} className="font-semibold hover:underline text-amber-600 dark:text-amber-400">{HTX_INFO.email}</a></p>
-        </footer>
-      </main>
+          {/* TAB 7: RECEIPT VIEW */}
+          {activeTab === 'receipt' && selectedReceiptSession && (
+            <ReceiptView
+              session={selectedReceiptSession}
+              onBack={() => setActiveTab('weighing')}
+              onCopyZalo={() => handleCopyZalo(selectedReceiptSession)}
+              darkMode={darkMode}
+            />
+          )}
+
+          {/* Footer */}
+          <footer className="mt-12 text-center text-xs text-slate-400 dark:text-slate-500 py-4 border-t border-slate-200/80 dark:border-slate-800 space-y-1">
+            <p className="font-bold text-slate-600 dark:text-slate-300">🌾 {adminConfig.htxInfo.name}</p>
+            <p>Địa chỉ: <strong>{adminConfig.htxInfo.address}</strong> • Tác giả: <strong>{adminConfig.htxInfo.author}</strong> • 📞 ĐT: <a href={`tel:${adminConfig.htxInfo.phone}`} className="font-semibold hover:underline text-emerald-600 dark:text-emerald-400">{adminConfig.htxInfo.phone}</a></p>
+          </footer>
+        </main>
+      </div>
 
       {/* Auth Login Modal */}
       {showAuthModal && (
