@@ -34,7 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     {
       id: 'weighing',
-      label: 'Cân Lúa Thu Hoạch',
+      label: 'Cân Lúa',
       icon: '⚖️',
       badge: bagCount > 0 ? `${bagCount} bao` : null,
       badgeColor: 'bg-emerald-500 text-slate-950',

@@ -457,53 +457,59 @@ export default function App() {
 
       {/* Main Body Content View */}
       <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-6 py-5">
-          {/* TAB 1: WEIGHING PANEL */}
+        <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-5">
+          {/* TAB 1: WEIGHING PAGE (Scientific 2-Column Layout) */}
           {activeTab === 'weighing' && (
-            <div className="space-y-4">
-              <FarmerInfoForm
-                sessionInfo={sessionInfo}
-                setSessionInfo={setSessionInfo}
-                adminConfig={adminConfig}
-                darkMode={darkMode}
-                onNewSession={handleNewSession}
-              />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column (35% W / 4-cols): Farmer Info & Deductions Card */}
+              <div className="lg:col-span-4 lg:sticky lg:top-5">
+                <FarmerInfoForm
+                  sessionInfo={sessionInfo}
+                  setSessionInfo={setSessionInfo}
+                  adminConfig={adminConfig}
+                  darkMode={darkMode}
+                  onNewSession={handleNewSession}
+                />
+              </div>
 
-              <WeighingPanel
-                currentWeight={currentWeight}
-                setCurrentWeight={setCurrentWeight}
-                onAddWeight={handleAddWeight}
-                onOpenOcr={() => setShowOcrModal(true)}
-                onOpenSmartParse={() => setShowSmartModal(true)}
-                onOpenBulkModal={() => setShowSmartModal(true)}
-                bagCount={currentTotals.totalBags}
-                draftCount={currentTotals.totalDrafts}
-                darkMode={darkMode}
-              />
+              {/* Right Column (65% W / 8-cols): Weighing Hero Controls, Bag List & Summary */}
+              <div className="lg:col-span-8 space-y-4">
+                <WeighingPanel
+                  currentWeight={currentWeight}
+                  setCurrentWeight={setCurrentWeight}
+                  onAddWeight={handleAddWeight}
+                  onOpenOcr={() => setShowOcrModal(true)}
+                  onOpenSmartParse={() => setShowSmartModal(true)}
+                  onOpenBulkModal={() => setShowSmartModal(true)}
+                  bagCount={currentTotals.totalBags}
+                  draftCount={currentTotals.totalDrafts}
+                  darkMode={darkMode}
+                />
 
-              <BagList
-                bagWeights={sessionInfo.bagWeights}
-                onRemoveWeight={handleRemoveWeight}
-                onClearAll={handleClearAllBags}
-                onUpdateWeight={handleUpdateWeight}
-                darkMode={darkMode}
-              />
+                <BagList
+                  bagWeights={sessionInfo.bagWeights}
+                  onRemoveWeight={handleRemoveWeight}
+                  onClearAll={handleClearAllBags}
+                  onUpdateWeight={handleUpdateWeight}
+                  darkMode={darkMode}
+                />
 
-              <SummaryCard
-                sessionInfo={sessionInfo}
-                totals={currentTotals}
-                onSaveSession={handleSaveSession}
-                onSpeakTts={handleSpeakTts}
-                ttsLoading={ttsLoading}
-                ttsPlaying={ttsPlaying}
-                onCopyZalo={() => handleCopyZalo()}
-                onViewReceipt={() => {
-                  setSelectedReceiptSession({ ...sessionInfo, calculated: currentTotals });
-                  setActiveTab('receipt');
-                }}
-                onOpenYieldModal={() => setShowYieldModal(true)}
-                darkMode={darkMode}
-              />
+                <SummaryCard
+                  sessionInfo={sessionInfo}
+                  totals={currentTotals}
+                  onSaveSession={handleSaveSession}
+                  onSpeakTts={handleSpeakTts}
+                  ttsLoading={ttsLoading}
+                  ttsPlaying={ttsPlaying}
+                  onCopyZalo={() => handleCopyZalo()}
+                  onViewReceipt={() => {
+                    setSelectedReceiptSession({ ...sessionInfo, calculated: currentTotals });
+                    setActiveTab('receipt');
+                  }}
+                  onOpenYieldModal={() => setShowYieldModal(true)}
+                  darkMode={darkMode}
+                />
+              </div>
             </div>
           )}
 
