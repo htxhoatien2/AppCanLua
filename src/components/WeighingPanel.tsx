@@ -171,8 +171,11 @@ export const WeighingPanel: React.FC<WeighingPanelProps> = ({
             ref={inputRef}
             type="number"
             step="0.1"
+            aria-label="Nhập khối lượng cân thô tính bằng kg"
             placeholder={isMultiBag ? `Ví dụ: 101.5 (cho ${bagsPerDraft} bao)` : "Ví dụ: 50.5"}
             value={currentWeight}
+            onFocus={(e) => e.target.select()}
+            onClick={(e) => (e.target as HTMLInputElement).select()}
             onChange={(e) => setCurrentWeight(e.target.value)}
             onKeyDown={handleKeyPress}
             className={`w-full p-4 sm:p-5 text-3xl sm:text-5xl font-lexend font-black rounded-2xl border text-center tracking-wider shadow-inner transition-all focus:outline-none focus:ring-4 ${
@@ -182,19 +185,20 @@ export const WeighingPanel: React.FC<WeighingPanelProps> = ({
             }`}
           />
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-black text-slate-400 pointer-events-none flex flex-col items-end">
-            <span className="text-amber-500 font-lexend">KG</span>
+            <span className="text-amber-500 font-lexend text-base">KG</span>
             {isMultiBag && <span className="text-xs text-amber-600 font-bold">({bagsPerDraft} bao)</span>}
           </span>
         </div>
 
         <button
           type="button"
+          aria-label="Thêm mã cân vừa nhập vào danh sách"
           onClick={() => {
             playBeep();
             onAddWeight(undefined, bagsPerDraft);
             if (inputRef.current) inputRef.current.focus();
           }}
-          className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-400 hover:to-amber-600 active:scale-95 text-slate-950 font-lexend font-black text-lg sm:text-xl px-6 sm:px-8 rounded-2xl shadow-xl shadow-amber-500/20 border border-amber-400/40 transition-all flex flex-col items-center justify-center leading-none tracking-wide"
+          className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-400 hover:to-amber-600 active:scale-95 text-slate-950 font-lexend font-black text-lg sm:text-xl px-6 sm:px-8 rounded-2xl shadow-xl shadow-amber-500/20 border border-amber-400/40 transition-all flex flex-col items-center justify-center leading-none tracking-wide h-14 min-h-[56px] min-w-[100px]"
         >
           <div className="flex items-center gap-1">
             <span>+</span>
@@ -206,7 +210,7 @@ export const WeighingPanel: React.FC<WeighingPanelProps> = ({
 
       {/* Helper text if multi-bag */}
       {isMultiBag && (
-        <div className="mb-4 text-center text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-500/10 py-1.5 px-3 rounded-xl border border-amber-500/20">
+        <div className="mb-4 text-center text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-500/10 py-2 px-3 rounded-xl border border-amber-500/20">
           ⚖️ Đang cân tổng <strong className="underline text-amber-900 dark:text-amber-200">{bagsPerDraft} bao</strong> mỗi lượt
           {avgPerBag && <span> — Trung bình: <strong className="text-amber-950 dark:text-amber-100">{avgPerBag} kg / bao</strong></span>}
         </div>
@@ -215,13 +219,13 @@ export const WeighingPanel: React.FC<WeighingPanelProps> = ({
       {/* Quick 1-Touch Buttons */}
       <div>
         <div className="flex justify-between items-center mb-2">
-          <span className="text-xs font-lexend font-extrabold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+          <span className="text-xs font-lexend font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
             <span>⚡</span> Phím Bấm Nhanh ({bagsPerDraft} bao / lượt):
           </span>
           <button
             type="button"
             onClick={() => setQuickSound(!quickSound)}
-            className="text-xs text-slate-500 hover:text-amber-600 dark:hover:text-amber-400 underline font-bold"
+            className="text-xs text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 underline font-bold py-1 px-2 rounded"
           >
             {quickSound ? '🔔 Âm Phím: Mở' : '🔕 Âm Phím: Tắt'}
           </button>
@@ -234,16 +238,17 @@ export const WeighingPanel: React.FC<WeighingPanelProps> = ({
               <button
                 key={w}
                 type="button"
+                aria-label={`Thêm số cân nhanh ${actualAddWeight} kg`}
                 onClick={() => handleQuickAdd(actualAddWeight)}
-                className={`py-2.5 px-1 rounded-2xl font-lexend font-black text-sm border shadow-sm transition-all active:scale-90 flex flex-col items-center justify-center ${
+                className={`min-h-[48px] py-2.5 px-1 rounded-2xl font-lexend font-black text-sm border shadow-sm transition-all active:scale-90 flex flex-col items-center justify-center ${
                   darkMode
                     ? 'bg-slate-800/90 hover:bg-gradient-to-r hover:from-amber-500 hover:to-amber-600 hover:text-slate-950 border-slate-700 text-amber-300 hover:border-amber-400'
-                    : 'bg-white hover:bg-gradient-to-r hover:from-amber-500 hover:to-amber-600 hover:text-slate-950 border-amber-200 text-slate-900 shadow-amber-900/5 hover:border-amber-400'
+                    : 'bg-white hover:bg-gradient-to-r hover:from-amber-500 hover:to-amber-600 hover:text-slate-950 border-amber-300 text-slate-900 shadow-amber-900/5 hover:border-amber-400'
                 }`}
                 title={bagsPerDraft > 1 ? `${bagsPerDraft} bao x ${w}kg = ${actualAddWeight}kg` : `${w}kg`}
               >
                 <span className="text-base sm:text-lg leading-none">{actualAddWeight}</span>
-                <span className="text-[10px] font-normal opacity-75 mt-0.5">
+                <span className="text-[10px] font-normal opacity-80 mt-0.5">
                   {bagsPerDraft > 1 ? `${bagsPerDraft}b x ${w}k` : 'kg'}
                 </span>
               </button>

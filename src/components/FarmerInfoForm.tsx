@@ -52,10 +52,11 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
         {/* Group 1: Parties Info */}
         <div className="space-y-2">
           <div>
-            <label className="block font-bold text-slate-700 dark:text-slate-200 mb-1">
+            <label htmlFor="farmerNameInput" className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
               Chủ Ruộng (Bên bán) <span className="text-rose-500">*</span>
             </label>
             <input
+              id="farmerNameInput"
               type="text"
               placeholder="VD: Anh Tám, Chú Ba..."
               value={sessionInfo.farmerName}
@@ -68,10 +69,11 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              <label htmlFor="truckInfoInput" className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Xe Nhận / Biển Số Xe <span className="text-rose-500">*</span>
               </label>
               <input
+                id="truckInfoInput"
                 type="text"
                 list="trucks-list"
                 placeholder="VD: Xe 43C-123.45..."
@@ -87,10 +89,11 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
             </div>
 
             <div>
-              <label className="block font-semibold text-emerald-700 dark:text-emerald-400 mb-1">
+              <label htmlFor="operatorNameInput" className="block font-semibold text-emerald-800 dark:text-emerald-400 mb-1">
                 Người Cân <span className="text-rose-500">*</span>
               </label>
               <input
+                id="operatorNameInput"
                 type="text"
                 list="operators-list"
                 placeholder="VD: Phạm Công Tuân..."
@@ -110,10 +113,11 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
         {/* Group 2: Rice & Price */}
         <div className="grid grid-cols-2 gap-2 border-t border-b border-emerald-500/10 py-2.5">
           <div>
-            <label className="block font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            <label htmlFor="riceTypeSelect" className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Giống Lúa <span className="text-rose-500">*</span>
             </label>
             <select
+              id="riceTypeSelect"
               value={sessionInfo.riceType}
               onChange={(e) => {
                 const varietyName = e.target.value;
@@ -137,10 +141,11 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
           </div>
 
           <div>
-            <label className="block font-semibold text-emerald-700 dark:text-emerald-400 mb-1">
+            <label htmlFor="unitPriceInput" className="block font-semibold text-emerald-800 dark:text-emerald-400 mb-1">
               Đơn Giá (đ/kg) <span className="text-rose-500">*</span>
             </label>
             <input
+              id="unitPriceInput"
               type="number"
               step="100"
               placeholder="8500"

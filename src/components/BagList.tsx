@@ -185,32 +185,34 @@ export const BagList: React.FC<BagListProps> = ({
                     )}
                   </div>
 
-                  {!isEditing && (
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleStartEdit(idx, entry)}
-                        className="p-1 text-slate-400 hover:text-amber-600 rounded-lg hover:bg-amber-100/50"
-                        title="Sửa mã cân"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onRemoveWeight(idx)}
-                        className="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-100/50 font-black text-xs"
-                        title="Xóa mã này"
-                      >
-                        ✕
-                      </button>
+                      {!isEditing && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            aria-label={`Chỉnh sửa mã cân số ${idx + 1}`}
+                            onClick={() => handleStartEdit(idx, entry)}
+                            className="p-2 min-h-[40px] min-w-[40px] text-slate-500 hover:text-amber-600 rounded-xl hover:bg-amber-100/60 dark:hover:bg-slate-800 flex items-center justify-center"
+                            title="Sửa mã cân"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`Xóa mã cân số ${idx + 1}`}
+                            onClick={() => onRemoveWeight(idx)}
+                            className="p-2 min-h-[40px] min-w-[40px] text-slate-500 hover:text-rose-600 rounded-xl hover:bg-rose-100/60 dark:hover:bg-slate-800 font-black text-sm flex items-center justify-center"
+                            title="Xóa mã này"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      );
+    };

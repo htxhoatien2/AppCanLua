@@ -199,6 +199,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             return (
               <button
                 key={item.id}
+                type="button"
+                aria-label={`Mở tab ${item.label}`}
                 onClick={() => {
                   setActiveTab(item.id as any);
                   setMobileOpen(false);
@@ -235,8 +237,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
 
           <button
+            type="button"
+            aria-label={darkMode ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
             onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 text-amber-300 transition-all border border-emerald-700/60"
+            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl bg-emerald-900/80 hover:bg-emerald-800 text-amber-300 transition-all border border-emerald-700/60"
             title={darkMode ? 'Chế độ sáng' : 'Chế độ tối'}
           >
             {darkMode ? '☀️' : '🌙'}

@@ -80,56 +80,68 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
         </div>
       </div>
 
-      {/* Main Highlight Row: Net Weight & Total Payable Money */}
-      <div className="bg-slate-950/60 backdrop-blur-lg p-5 rounded-3xl border border-white/20 mb-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-5 shadow-2xl">
-        {/* Net Weight */}
-        <div>
-          <div className="text-xs text-emerald-300 uppercase tracking-widest font-extrabold flex items-center gap-1.5">
-            <span>✨</span> CÂN RÒNG THỰC TẾ (SAU BÌ & LÉP)
+      {/* Main Highlight Row: Distinct Net Weight (Emerald/KG) & Total Payable Money (Amber/VNĐ) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+        {/* Net Weight Card (Emerald Theme) */}
+        <div className="bg-emerald-950/80 backdrop-blur-lg p-5 rounded-3xl border-2 border-emerald-400/60 shadow-2xl relative overflow-hidden">
+          <div className="text-xs text-emerald-300 uppercase tracking-widest font-black flex items-center justify-between mb-1">
+            <span className="flex items-center gap-1.5">⚖️ CÂN RÒNG THỰC TẾ (SAU BÌ & LÉP)</span>
+            <span className="text-[10px] bg-emerald-500 text-slate-950 font-black px-2 py-0.5 rounded-full">KHỐI LƯỢNG (KG)</span>
           </div>
-          <div className="text-4xl sm:text-5xl font-lexend font-black text-amber-300 drop-shadow-md tracking-tight">
-            {formatNumber(totals.finalNetWeight)} <span className="text-base font-bold text-amber-100">kg</span>
+          <div className="text-4xl sm:text-5xl font-lexend font-black text-emerald-300 drop-shadow-md tracking-tight flex items-baseline gap-2">
+            <span>{formatNumber(totals.finalNetWeight)}</span>
+            <span className="text-lg font-bold text-emerald-200">KG</span>
           </div>
-          <div className="text-xs text-emerald-100/90 mt-1 font-semibold">
-            Đơn giá lúa: <strong className="text-white underline">{formatVND(sessionInfo.unitPrice)}</strong> / kg
+          <div className="text-xs text-emerald-200/90 mt-2 font-medium">
+            Đơn giá lúa: <strong className="text-white underline font-bold">{formatVND(sessionInfo.unitPrice)}</strong> / kg
           </div>
         </div>
 
-        {/* Total Money */}
-        <div className="w-full md:w-auto text-left md:text-right border-t md:border-t-0 border-white/20 pt-4 md:pt-0">
-          <div className="text-xs text-emerald-300 uppercase tracking-widest font-extrabold flex items-center gap-1.5 md:justify-end">
-            <span>💵</span> TỔNG THÀNH TIỀN LÚA
+        {/* Total Money Card (Amber Theme) */}
+        <div className="bg-amber-950/80 backdrop-blur-lg p-5 rounded-3xl border-2 border-amber-400/60 shadow-2xl relative overflow-hidden">
+          <div className="text-xs text-amber-300 uppercase tracking-widest font-black flex items-center justify-between mb-1">
+            <span className="flex items-center gap-1.5">💰 TỔNG THÀNH TIỀN LÚA</span>
+            <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full">THÀNH TIỀN (VNĐ)</span>
           </div>
-          <div className="text-4xl sm:text-5xl font-lexend font-black text-white drop-shadow-md tracking-tight">
-            {formatVND(totals.totalAmount)}
+          <div className="text-4xl sm:text-5xl font-lexend font-black text-amber-300 drop-shadow-md tracking-tight flex items-baseline gap-2">
+            <span>{formatVND(totals.totalAmount)}</span>
           </div>
-          {totals.depositAmount > 0 && (
-            <div className="text-xs text-emerald-200 mt-1 font-bold bg-emerald-950/80 px-3 py-1 rounded-xl border border-emerald-500/40 inline-block shadow-sm">
+          {totals.depositAmount > 0 ? (
+            <div className="text-xs text-amber-200 mt-2 font-bold bg-amber-900/60 px-3 py-1 rounded-xl border border-amber-500/40 inline-block shadow-sm">
               Đã cọc: -{formatVND(totals.depositAmount)} | CÒN LẠI: <strong className="text-amber-300 text-sm underline">{formatVND(totals.remainingPayable)}</strong>
+            </div>
+          ) : (
+            <div className="text-xs text-amber-200/80 mt-2 font-medium">
+              Chưa trừ tiền cọc ứng trước
             </div>
           )}
         </div>
       </div>
 
-      {/* Action Buttons Toolbar */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
+      {/* Primary Big CTA Save Button */}
+      <div className="mb-4">
         <button
           type="button"
+          aria-label="Lưu và xác nhận phiếu cân lúa vào sổ"
           onClick={onSaveSession}
-          className="bg-white text-slate-950 hover:bg-emerald-100 active:scale-95 font-lexend font-black py-3.5 px-3 rounded-2xl shadow-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all border border-white"
+          className="w-full h-14 min-h-[56px] bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400 hover:from-emerald-300 hover:to-teal-300 active:scale-98 text-slate-950 font-lexend font-black text-lg sm:text-xl rounded-2xl shadow-2xl border-2 border-white/50 transition-all flex items-center justify-center gap-2.5 uppercase tracking-wide"
         >
-          <span className="text-base">💾</span>
-          <span>Lưu Sổ Cân</span>
+          <span className="text-xl">✅</span>
+          <span>XÁC NHẬN & LƯU PHIẾU CÂN</span>
         </button>
+      </div>
 
+      {/* Secondary Action Buttons Toolbar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         <button
           type="button"
+          aria-label="Phát giọng nói AI đọc kết quả cân lúa"
           onClick={onSpeakTts}
           disabled={ttsLoading}
-          className={`py-3.5 px-3 rounded-2xl shadow-xl text-xs sm:text-sm font-lexend font-black flex items-center justify-center gap-1.5 transition-all text-white border border-white/30 ${
+          className={`h-12 min-h-[48px] px-3 rounded-2xl shadow-xl text-xs sm:text-sm font-lexend font-black flex items-center justify-center gap-1.5 transition-all text-white border border-white/30 ${
             ttsPlaying
               ? 'bg-rose-600 hover:bg-rose-700 animate-pulse'
-              : 'bg-emerald-900 hover:bg-emerald-950'
+              : 'bg-emerald-900/90 hover:bg-emerald-950'
           }`}
         >
           <span className="text-base">🔊</span>
@@ -138,8 +150,9 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
 
         <button
           type="button"
+          aria-label="Sao chép nội dung phiếu cân gửi Zalo"
           onClick={onCopyZalo}
-          className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-lexend font-black py-3.5 px-3 rounded-2xl shadow-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all border border-blue-400/40"
+          className="h-12 min-h-[48px] bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-lexend font-black px-3 rounded-2xl shadow-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all border border-blue-400/40"
         >
           <span className="text-base">📋</span>
           <span>Gửi Zalo</span>
@@ -147,8 +160,9 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
 
         <button
           type="button"
+          aria-label="Xem và in phiếu cân"
           onClick={onViewReceipt}
-          className="bg-slate-950 hover:bg-black active:scale-95 text-white font-lexend font-black py-3.5 px-3 rounded-2xl shadow-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all border border-slate-700"
+          className="h-12 min-h-[48px] bg-slate-950 hover:bg-black active:scale-95 text-white font-lexend font-black px-3 rounded-2xl shadow-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all border border-slate-700"
         >
           <span className="text-base">📄</span>
           <span>Xem Phiếu</span>
@@ -156,11 +170,12 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
 
         <button
           type="button"
+          aria-label="Mở máy tính lợi nhuận năng suất sào mẫu"
           onClick={onOpenYieldModal}
-          className="col-span-2 sm:col-span-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-lexend font-black py-3.5 px-3 rounded-2xl shadow-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all border border-amber-300"
+          className="h-12 min-h-[48px] bg-amber-400 hover:bg-amber-300 text-slate-950 font-lexend font-black px-3 rounded-2xl shadow-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all border border-amber-300"
         >
           <span className="text-base">📊</span>
-          <span>Tính Lợi Nhuận</span>
+          <span>Lợi Nhuận</span>
         </button>
       </div>
     </div>

@@ -609,12 +609,48 @@ export default function App() {
           )}
 
           {/* Footer */}
-          <footer className="mt-12 text-center text-xs text-slate-400 dark:text-slate-500 py-4 border-t border-slate-200/80 dark:border-slate-800 space-y-1">
+          <footer className="mt-12 text-center text-xs text-slate-400 dark:text-slate-500 py-4 border-t border-slate-200/80 dark:border-slate-800 space-y-1 pb-20 lg:pb-4">
             <p className="font-bold text-slate-600 dark:text-slate-300">🌾 {adminConfig.htxInfo.name}</p>
             <p>Địa chỉ: <strong>{adminConfig.htxInfo.address}</strong> • Tác giả: <strong>{adminConfig.htxInfo.author}</strong> • 📞 ĐT: <a href={`tel:${adminConfig.htxInfo.phone}`} className="font-semibold hover:underline text-emerald-600 dark:text-emerald-400">{adminConfig.htxInfo.phone}</a></p>
           </footer>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar (1-Tap Thumb Navigation) */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-emerald-950/95 border-t border-emerald-800/90 backdrop-blur-xl px-2 py-1.5 flex justify-around items-center text-white shadow-2xl">
+        {[
+          { id: 'weighing', label: 'Cân Lúa', icon: '⚖️', badge: currentTotals.totalBags > 0 ? `${currentTotals.totalBags}` : null },
+          { id: 'truck_batch', label: 'Chuyến Xe', icon: '🚛' },
+          { id: 'farmer_settlement', label: 'Quyết Toán', icon: '🤝' },
+          { id: 'history', label: 'Sổ Cân', icon: '📜', badge: savedSessions.length > 0 ? `${savedSessions.length}` : null },
+          { id: 'dashboard', label: 'Thống Kê', icon: '📈' },
+        ].map((navItem) => {
+          const isActive = activeTab === navItem.id;
+          return (
+            <button
+              key={navItem.id}
+              type="button"
+              aria-label={`Chuyển sang màn hình ${navItem.label}`}
+              onClick={() => setActiveTab(navItem.id as any)}
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all relative ${
+                isActive
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black shadow-lg scale-105'
+                  : 'text-emerald-200/80 hover:text-white hover:bg-emerald-900/40'
+              }`}
+            >
+              <span className="text-lg leading-none">{navItem.icon}</span>
+              <span className="text-[10px] font-lexend font-bold mt-1 tracking-tight truncate w-full text-center">
+                {navItem.label}
+              </span>
+              {navItem.badge && !isActive && (
+                <span className="absolute -top-1 right-2 bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.2 rounded-full shadow-xs">
+                  {navItem.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </nav>
 
       {/* Auth Login Modal */}
       {showAuthModal && (
