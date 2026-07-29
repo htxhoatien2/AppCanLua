@@ -21,16 +21,22 @@ export const HistoryList: React.FC<HistoryListProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [varietyFilter, setVarietyFilter] = useState('ALL');
+  const [operatorFilter, setOperatorFilter] = useState('ALL');
+
+  // Available operators list
+  const operatorList = Array.from(new Set(sessions.map((s) => s.operatorName || 'Phạm Công Tuân')));
 
   const filteredSessions = sessions.filter((s) => {
     const matchesSearch =
       (s.farmerName && s.farmerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (s.buyerName && s.buyerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (s.truckInfo && s.truckInfo.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (s.operatorName && s.operatorName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (s.date && s.date.includes(searchTerm));
     
     const matchesVariety = varietyFilter === 'ALL' || s.riceType === varietyFilter;
+    const matchesOperator = operatorFilter === 'ALL' || (s.operatorName || 'Phạm Công Tuân') === operatorFilter;
 
-    return matchesSearch && matchesVariety;
+    return matchesSearch && matchesVariety && matchesOperator;
   });
 
   const totalKg = filteredSessions.reduce((acc, s) => acc + (s.calculated?.finalNetWeight || 0), 0);
@@ -38,12 +44,12 @@ export const HistoryList: React.FC<HistoryListProps> = ({
 
   const handleDownloadCSV = () => {
     if (sessions.length === 0) return;
-    const csvContent = exportSessionsToCSV(sessions);
+    const csvContent = exportSessionsToCSV(filteredSessions);
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `So_Can_Lua_Lich_Su_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `So_Can_Lua_HTX_HoaTien2_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -57,33 +63,46 @@ export const HistoryList: React.FC<HistoryListProps> = ({
         <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
           <div>
             <h2 className="font-lexend font-black text-base sm:text-xl text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              📜 SỔ CÂN LÚA LỊCH SỬ ({filteredSessions.length} phiếu)
+              📜 SỔ CÂN HTX HÒA TIẾN 2 ({filteredSessions.length} phiếu)
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Quản lý toàn bộ nhật ký thu hoạch, in ấn và chia sẻ lại cho nông dân
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
+              Quản lý toàn bộ nhật ký thu hoạch lúa, phân loại theo Cán bộ cân & Xe nhận
             </p>
           </div>
 
           <button
             onClick={handleDownloadCSV}
-            disabled={sessions.length === 0}
+            disabled={filteredSessions.length === 0}
             className="text-xs bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-50 text-white font-lexend font-black px-4 py-2.5 rounded-2xl shadow-lg shadow-emerald-900/20 transition-all flex items-center gap-1.5 border border-emerald-400/30"
           >
-            <span>📥 Xuất File Excel / CSV</span>
+            <span>📥 Xuất Báo Cáo Excel / CSV</span>
           </button>
         </div>
 
         {/* Search & Filter Inputs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <input
             type="text"
-            placeholder="🔍 Tìm tên chủ ruộng, lái lúa, ngày..."
+            placeholder="🔍 Tìm tên chủ ruộng, xe nhận, người cân..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`p-3 rounded-2xl border text-xs sm:text-sm font-medium focus:outline-none focus:ring-4 focus:ring-amber-500/30 ${
               darkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
             }`}
           />
+
+          <select
+            value={operatorFilter}
+            onChange={(e) => setOperatorFilter(e.target.value)}
+            className={`p-3 rounded-2xl border text-xs sm:text-sm font-lexend font-bold ${
+              darkMode ? 'bg-slate-950 border-slate-800 text-amber-300' : 'bg-slate-50 border-slate-300 text-slate-800'
+            }`}
+          >
+            <option value="ALL">👤 Tất cả Cán Bộ Cân</option>
+            {operatorList.map((op, idx) => (
+              <option key={idx} value={op}>{op}</option>
+            ))}
+          </select>
 
           <select
             value={varietyFilter}
@@ -93,12 +112,11 @@ export const HistoryList: React.FC<HistoryListProps> = ({
             }`}
           >
             <option value="ALL">🌾 Tất cả giống lúa</option>
-            <option value="OM 5451">OM 5451</option>
-            <option value="OM 18">OM 18</option>
-            <option value="Đài Thơm 8">Đài Thơm 8</option>
-            <option value="ST 24">ST 24</option>
-            <option value="ST 25">ST 25</option>
-            <option value="IR 50404">IR 50404</option>
+            <option value="HG12">HG12</option>
+            <option value="HG244">HG244</option>
+            <option value="HT1">HT1</option>
+            <option value="ĐT100">ĐT100</option>
+            <option value="J02">J02</option>
           </select>
 
           {/* History Total Banner */}
@@ -139,7 +157,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                       </span>
                     </h3>
                     <p className="text-xs text-slate-400 mt-0.5 font-medium">
-                      🗓 Ngày: {session.date} • Lái mua: <strong>{session.buyerName || 'Chưa rõ'}</strong>
+                      🗓 Ngày: {session.date} • Xe nhận: <strong className="text-slate-700 dark:text-slate-200">{session.truckInfo || 'Xe HTX'}</strong> • Người cân: <strong className="text-amber-600 dark:text-amber-300">{session.operatorName || 'Phạm Công Tuân'}</strong>
                     </p>
                   </div>
 

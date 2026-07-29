@@ -1,3 +1,11 @@
+export interface User {
+  id: string;
+  username: string;
+  fullName: string;
+  role: 'admin' | 'operator';
+  phone?: string;
+}
+
 export interface WeighingEntry {
   weight: number; // Tổng cân thô của lượt này (kg)
   bagsCount: number; // Số bao trong lượt cân này (ví dụ 1, 2, 3 bao...)
@@ -5,23 +13,37 @@ export interface WeighingEntry {
 
 export interface WeighingSession {
   id: string;
+  userId?: string; // ID Cán bộ / User đăng nhập
+  operatorName: string; // Tên Cán bộ cân / Người ghi cân tại điểm
   farmerName: string;
   farmerPhone?: string;
-  buyerName: string;
-  buyerPhone?: string;
-  location?: string;
+  truckInfo: string; // Xe nhận / Biển số xe / Tên tài xế (thay thế buyerName)
+  truckPhone?: string;
+  location?: string; // Cánh đồng / Điểm cân (Đồng Gò Tháp, Đồng Cửa Kho...)
   riceType: string;
   unitPrice: number; // đ/kg
-  tarePerBag: number; // kg/bao (e.g. 0.1kg)
-  impurityPercent: number; // % lép/độ ẩm (e.g. 2%)
-  deposit: number; // tiền ứng trước / cọc (đ)
+
+  // Trừ Bì
+  tareType: 'per_bag' | 'fixed_total'; // 'per_bag' (kg/bao) hoặc 'fixed_total' (trừ cố định kg tổng)
+  tarePerBag: number; // kg/bao (khi tareType === 'per_bag')
+  tareFixedTotal?: number; // kg tổng bì (khi tareType === 'fixed_total')
+
+  // Trừ Lép / Ẩm
+  impurityType: 'percent' | 'fixed_kg' | 'moisture_std'; // 'percent' (%), 'fixed_kg' (kg lép), 'moisture_std' (quy chuẩn độ ẩm 14%)
+  impurityPercent: number; // % (khi impurityType === 'percent')
+  impurityFixedKg?: number; // kg lép cố định (khi impurityType === 'fixed_kg')
+  moisturePercent?: number; // % Độ ẩm thực tế lúa tươi (khi impurityType === 'moisture_std')
+
+  deposit: number; // Tiền ứng trước / cọc (đ)
   date: string; // YYYY-MM-DD
   note?: string;
-  bagWeights: (number | WeighingEntry)[]; // hỗ trợ cả số đơn (1 bao) và object WeighingEntry (nhiều bao/lượt)
+  bagWeights: (number | WeighingEntry)[]; // Hỗ trợ cả số đơn (1 bao) và object WeighingEntry (nhiều bao/lượt)
   calculated?: CalculatedTotals;
   createdAt: string;
-  areaSize?: number; // diện tích ruộng (công / ha)
-  areaUnit?: 'cong_nho' | 'cong_lon' | 'ha'; // công tầm cắt (1000m2), công tầm lớn (1296m2), hecta (10000m2)
+
+  // Đơn vị diện tích Trung Bộ
+  areaSize?: number; // Diện tích ruộng (Sào / Mẫu / Ha)
+  areaUnit?: 'sao_trung_bo' | 'mau_trung_bo' | 'ha'; // Sào Trung Bộ (500m2), Mẫu Trung Bộ (5000m2), Hecta (10000m2)
 }
 
 export interface CalculatedTotals {
@@ -39,6 +61,7 @@ export interface CalculatedTotals {
   avgBagWeight: number; // Trọng lượng trung bình 1 bao (kg)
   minBagWeight: number;
   maxBagWeight: number;
+  moistureDeductionKg?: number; // Số kg quy đổi theo độ ẩm chuẩn 14%
 }
 
 export interface RiceVariety {
@@ -58,7 +81,7 @@ export interface AiChatMessage {
 
 export interface OcrResult {
   farmerName?: string;
-  buyerName?: string;
+  truckInfo?: string;
   riceType?: string;
   unitPrice?: number;
   tarePerBag?: number;
@@ -70,9 +93,9 @@ export interface OcrResult {
 export interface YieldAnalysis {
   totalNetKg: number;
   areaInSquareMeters: number;
-  yieldPerCongNho: number; // kg / 1,000m2
-  yieldPerCongLon: number; // kg / 1,296m2
-  yieldPerHa: number; // tấn / ha
+  yieldPerSaoTrungBo: number; // kg / Sào Trung Bộ (500m2)
+  yieldPerMauTrungBo: number; // kg / Mẫu Trung Bộ (5,000m2)
+  yieldPerHa: number; // Tấn / ha (10,000m2)
   totalRevenue: number;
   productionCost: number;
   estimatedProfit: number;

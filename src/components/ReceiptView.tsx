@@ -1,6 +1,7 @@
 import React from 'react';
 import { WeighingSession } from '../types';
 import { calculateTotals, formatVND, formatNumber, normalizeEntry } from '../utils/formatters';
+import { HTX_INFO } from '../data/riceData';
 
 interface ReceiptViewProps {
   session: WeighingSession;
@@ -56,7 +57,12 @@ export const ReceiptView: React.FC<ReceiptViewProps> = ({
         {/* Header Banner */}
         <div className="text-center border-b-2 border-amber-600 pb-5">
           <div className="inline-block p-3 bg-amber-50 rounded-2xl mb-1 shadow-sm">🌾</div>
-          <h2 className="font-lexend font-black text-2xl sm:text-3xl text-amber-900 uppercase tracking-wide">
+          <h1 className="font-lexend font-extrabold text-sm sm:text-base text-amber-900 uppercase tracking-wide">
+            {HTX_INFO.name}
+          </h1>
+          <p className="text-[11px] text-slate-500 font-semibold">{HTX_INFO.address} • ĐT: {HTX_INFO.phone}</p>
+          
+          <h2 className="font-lexend font-black text-2xl sm:text-3xl text-slate-900 uppercase tracking-wide mt-3">
             PHIẾU CÂN LÚA THU HOẠCH
           </h2>
           <p className="text-xs text-slate-500 font-semibold mt-1">
@@ -64,7 +70,7 @@ export const ReceiptView: React.FC<ReceiptViewProps> = ({
           </p>
         </div>
 
-        {/* Farmer & Trader Info */}
+        {/* Farmer & Trader / Truck Info */}
         <div className="grid grid-cols-2 gap-3 text-xs bg-amber-50/90 p-4 rounded-2xl border border-amber-200/80">
           <div>
             <span className="text-slate-500">Chủ ruộng (Bên bán):</span>
@@ -73,26 +79,24 @@ export const ReceiptView: React.FC<ReceiptViewProps> = ({
           </div>
 
           <div>
-            <span className="text-slate-500">Lái lúa (Bên mua):</span>
-            <p className="font-lexend font-extrabold text-sm sm:text-base text-slate-900">{session.buyerName || '................................'}</p>
-            {session.buyerPhone && <p className="text-[11px] text-slate-600 font-semibold">SĐT: {session.buyerPhone}</p>}
+            <span className="text-slate-500">Xe nhận / Biển số xe:</span>
+            <p className="font-lexend font-extrabold text-sm sm:text-base text-slate-900">{session.truckInfo || '................................'}</p>
           </div>
 
           <div>
-            <span className="text-slate-500">Giống lúa:</span>
-            <p className="font-lexend font-bold text-amber-800 text-sm">{session.riceType}</p>
+            <span className="text-slate-500">Cán bộ / Người cân:</span>
+            <p className="font-lexend font-bold text-amber-900 text-sm">{session.operatorName || 'Phạm Công Tuân'}</p>
           </div>
 
           <div>
-            <span className="text-slate-500">Đơn giá lúa:</span>
-            <p className="font-lexend font-bold text-amber-800 text-sm">{formatVND(session.unitPrice)} / kg</p>
+            <span className="text-slate-500">Giống lúa / Đơn giá:</span>
+            <p className="font-lexend font-bold text-amber-900 text-sm">{session.riceType} ({formatVND(session.unitPrice)}/kg)</p>
           </div>
 
-          {session.note && (
-            <div className="col-span-2 border-t border-amber-200/80 pt-1.5">
-              <span className="text-slate-500">Ghi chú đồng ruộng:</span> {session.note}
-            </div>
-          )}
+          <div className="col-span-2 border-t border-amber-200/80 pt-1.5 flex justify-between">
+            <span><strong className="text-slate-500">Địa điểm cân:</strong> {session.location || 'Đồng ruộng HTX Hòa Tiến 2'}</span>
+            {session.note && <span><strong className="text-slate-500">Ghi chú:</strong> {session.note}</span>}
+          </div>
         </div>
 
         {/* Financial & Weight Table */}
@@ -110,12 +114,12 @@ export const ReceiptView: React.FC<ReceiptViewProps> = ({
           </div>
 
           <div className="flex justify-between py-1 border-t border-slate-100 text-rose-600">
-            <span>Trừ bì bao ({session.tarePerBag} kg/bao):</span>
+            <span>Trừ bì bao ({session.tareType === 'fixed_total' ? 'Cố định tổng lô' : `${session.tarePerBag} kg/bao`}):</span>
             <span className="font-bold text-sm">-{formatNumber(calc.totalTare)} kg</span>
           </div>
 
           <div className="flex justify-between py-1 border-t border-slate-100 text-rose-600">
-            <span>Trừ lép/độ ẩm ({session.impurityPercent}%):</span>
+            <span>Trừ lép/ẩm ({session.impurityType === 'moisture_std' ? `Quy đổi ẩm chuẩn 14% (Ẩm thực tế ${session.moisturePercent}%)` : session.impurityType === 'fixed_kg' ? 'Trừ kg cố định' : `${session.impurityPercent}%`}):</span>
             <span className="font-bold text-sm">-{formatNumber(calc.impurityDeduction)} kg</span>
           </div>
 
@@ -173,17 +177,17 @@ export const ReceiptView: React.FC<ReceiptViewProps> = ({
           </div>
 
           <div>
-            <p className="font-lexend font-bold text-slate-900 uppercase">THƯƠNG LÁI (BÊN MUA)</p>
+            <p className="font-lexend font-bold text-slate-900 uppercase">CÁN BỘ CÂN / XE NHẬN (HTX)</p>
             <p className="text-[10px] italic text-slate-400 mt-0.5">(Ký và ghi rõ họ tên)</p>
             <div className="h-20"></div>
-            <p className="font-bold text-slate-800">{session.buyerName || '....................'}</p>
+            <p className="font-bold text-slate-800">{session.operatorName || 'Phạm Công Tuân'}</p>
           </div>
         </div>
 
         {/* Footer */}
         <div className="border-t pt-3 text-center text-[10px] text-slate-400 space-y-0.5">
-          <p className="italic">Phiếu cân được tạo tự động bởi ứng dụng Cân Lúa Đồng Rộng (AI Powered). Chúc bà con mùa màng bội thu!</p>
-          <p className="font-semibold text-slate-500">Tác giả & Phát triển: <strong>Phạm Công Tuân</strong> • SĐT: <strong>0916199945</strong> • Email: <strong>htxhoatien2@gmail.com</strong></p>
+          <p className="italic">{HTX_INFO.name} — Xã Hòa Tiến, Huyện Hòa Vàng, TP. Đà Nẵng</p>
+          <p className="font-semibold text-slate-500">Tác giả phần mềm: <strong>Phạm Công Tuân</strong> • SĐT: <strong>0916199945</strong> • Email: <strong>htxhoatien2@gmail.com</strong></p>
         </div>
       </div>
     </div>

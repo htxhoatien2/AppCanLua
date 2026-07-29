@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { WeighingSession, OcrResult, WeighingEntry } from './types';
+import { WeighingSession, OcrResult, User } from './types';
 import { calculateTotals, generateZaloShareText } from './utils/formatters';
 import { playBase64PcmAudio } from './utils/audioUtils';
 import { fetchSessions, saveSession as saveSessionToService, deleteSession as deleteSessionFromService } from './services/sessionService';
 import { isSupabaseConfigured } from './lib/supabase';
+import { HTX_INFO } from './data/riceData';
 
 import { Header } from './components/Header';
 import { FarmerInfoForm } from './components/FarmerInfoForm';
@@ -17,29 +18,60 @@ import { YieldCalculatorModal } from './components/YieldCalculatorModal';
 import { DashboardView } from './components/DashboardView';
 import { OcrModal } from './components/OcrModal';
 import { SmartParseModal } from './components/SmartParseModal';
+import { AuthModal } from './components/AuthModal';
+
+const USER_STORAGE_KEY = 'htx_hoatien2_current_user';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard'>('weighing');
   const [isCloudSync, setIsCloudSync] = useState<boolean>(isSupabaseConfigured);
 
+  // User State
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    try {
+      const stored = localStorage.getItem(USER_STORAGE_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    // Mặc định Cán bộ Phạm Công Tuân
+    return {
+      id: 'pham_cong_tuan',
+      username: 'pham_cong_tuan',
+      fullName: HTX_INFO.author,
+      role: 'admin',
+    };
+  });
+
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+
   // Current session being edited
   const [sessionInfo, setSessionInfo] = useState<WeighingSession>({
     id: Date.now().toString(),
+    userId: currentUser?.id,
+    operatorName: currentUser?.fullName || HTX_INFO.author,
     farmerName: '',
     farmerPhone: '',
-    buyerName: '',
-    buyerPhone: '',
-    location: '',
-    riceType: 'OM 5451',
+    truckInfo: 'Xe Đội 1 HTX Hòa Tiến 2',
+    truckPhone: '',
+    location: 'Cánh đồng Gò Tháp',
+    riceType: 'HT1',
     unitPrice: 8500,
+
+    tareType: 'per_bag',
     tarePerBag: 0.1,
+    tareFixedTotal: 0,
+
+    impurityType: 'percent',
     impurityPercent: 0,
+    impurityFixedKg: 0,
+    moisturePercent: 14,
+
     deposit: 0,
     date: new Date().toISOString().split('T')[0],
     note: '',
     bagWeights: [],
     createdAt: new Date().toLocaleString('vi-VN'),
+    areaUnit: 'sao_trung_bo',
   });
 
   const [currentWeight, setCurrentWeight] = useState<string>('');
@@ -59,7 +91,7 @@ export default function App() {
   const [ttsPlaying, setTtsPlaying] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Load history on mount from Supabase / LocalStorage
+  // Load history on mount
   useEffect(() => {
     async function loadData() {
       const result = await fetchSessions();
@@ -68,6 +100,25 @@ export default function App() {
     }
     loadData();
   }, []);
+
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    } catch (e) {}
+    setSessionInfo((prev) => ({
+      ...prev,
+      userId: user.id,
+      operatorName: user.fullName,
+    }));
+    showToast(`🔑 Đăng nhập thành công: ${user.fullName}`);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem(USER_STORAGE_KEY);
+    showToast('👋 Đã đăng xuất khỏi tài khoản!');
+  };
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -95,7 +146,7 @@ export default function App() {
       if (!rawText) return;
 
       const tokens = rawText.split(/[\s,;+\n]+/).filter(Boolean);
-      const newEntries: (number | WeighingEntry)[] = [];
+      const newEntries: (number | any)[] = [];
 
       for (const token of tokens) {
         if (token.includes('/')) {
@@ -158,20 +209,28 @@ export default function App() {
 
     setSessionInfo({
       id: Date.now().toString(),
+      userId: currentUser?.id,
+      operatorName: currentUser?.fullName || HTX_INFO.author,
       farmerName: '',
       farmerPhone: '',
-      buyerName: '',
-      buyerPhone: '',
-      location: '',
-      riceType: 'OM 5451',
+      truckInfo: 'Xe Đội 1 HTX Hòa Tiến 2',
+      truckPhone: '',
+      location: 'Cánh đồng Gò Tháp',
+      riceType: 'HT1',
       unitPrice: 8500,
+      tareType: 'per_bag',
       tarePerBag: 0.1,
+      tareFixedTotal: 0,
+      impurityType: 'percent',
       impurityPercent: 0,
+      impurityFixedKg: 0,
+      moisturePercent: 14,
       deposit: 0,
       date: new Date().toISOString().split('T')[0],
       note: '',
       bagWeights: [],
       createdAt: new Date().toLocaleString('vi-VN'),
+      areaUnit: 'sao_trung_bo',
     });
     setCurrentWeight('');
     showToast('Đã tạo phiếu cân mới!');
@@ -180,7 +239,7 @@ export default function App() {
   // Calculated totals
   const currentTotals = calculateTotals(sessionInfo.bagWeights, sessionInfo);
 
-  // Save Session to Supabase Cloud / Local History
+  // Save Session
   const handleSaveSession = async () => {
     if (sessionInfo.bagWeights.length === 0) {
       return showToast('Chưa có bao lúa nào trong phiếu cân!');
@@ -192,13 +251,14 @@ export default function App() {
     const completedSession: WeighingSession = {
       ...sessionInfo,
       id: sessionInfo.id || Date.now().toString(),
+      userId: currentUser?.id,
+      operatorName: sessionInfo.operatorName || currentUser?.fullName || HTX_INFO.author,
       calculated: currentTotals,
       createdAt: new Date().toLocaleString('vi-VN'),
     };
 
     const res = await saveSessionToService(completedSession);
     
-    // Update local state UI
     const existingIdx = savedSessions.findIndex((s) => s.id === completedSession.id);
     let updatedHistory = [...savedSessions];
     if (existingIdx >= 0) {
@@ -210,7 +270,7 @@ export default function App() {
     setIsCloudSync(res.isCloud);
 
     if (res.isCloud) {
-      showToast('☁️ Đã đồng bộ phiếu cân lên Supabase Cloud thành công!');
+      showToast('☁️ Đã đồng bộ phiếu cân lên Supabase Cloud!');
     } else {
       showToast('💾 Đã lưu phiếu cân vào máy (LocalStorage)!');
     }
@@ -227,7 +287,7 @@ export default function App() {
     }
   };
 
-  // Load Session to Edit / Add More Bags
+  // Load Session to Edit
   const handleLoadSessionToEdit = (s: WeighingSession) => {
     setSessionInfo(s);
     setActiveTab('weighing');
@@ -252,7 +312,7 @@ export default function App() {
         document.execCommand('copy');
         document.body.removeChild(textArea);
       }
-      showToast('📋 Đã sao chép nội dung gửi Zalo!');
+      showToast('📋 Đã sao chép nội dung phiếu cân gửi Zalo!');
     } catch (err) {
       showToast('Không thể tự động sao chép.');
     }
@@ -269,7 +329,7 @@ export default function App() {
     setTtsLoading(true);
     try {
       const calc = currentTotals;
-      const textToRead = `Thông báo kết quả cân lúa: Chủ ruộng ${
+      const textToRead = `Thông báo kết quả cân lúa HTX Hòa Tiến 2: Chủ ruộng ${
         sessionInfo.farmerName || 'Chưa nhập tên'
       }. Giống lúa ${sessionInfo.riceType}. Tổng cộng ${calc.totalBags} bao lúa, cân ròng thực tế là ${
         calc.finalNetWeight
@@ -309,7 +369,7 @@ export default function App() {
       setSessionInfo((prev) => ({
         ...prev,
         farmerName: ocr.farmerName || prev.farmerName,
-        buyerName: ocr.buyerName || prev.buyerName,
+        truckInfo: ocr.truckInfo || prev.truckInfo,
         riceType: ocr.riceType || prev.riceType,
         unitPrice: ocr.unitPrice || prev.unitPrice,
         tarePerBag: ocr.tarePerBag !== undefined ? ocr.tarePerBag : prev.tarePerBag,
@@ -327,23 +387,23 @@ export default function App() {
       setSessionInfo((prev) => ({
         ...prev,
         farmerName: data.farmerName || prev.farmerName,
-        buyerName: data.buyerName || prev.buyerName,
+        truckInfo: data.buyerName || data.truckInfo || prev.truckInfo,
         riceType: data.riceType || prev.riceType,
         unitPrice: data.unitPrice || prev.unitPrice,
         deposit: data.deposit || prev.deposit,
         bagWeights: [...prev.bagWeights, ...data.bagWeights],
       }));
-      showToast(`✨ AI đã phân tích lời nói/văn bản và thêm ${data.bagWeights.length} bao lúa!`);
+      showToast(`✨ AI đã phân tích lời nói và thêm ${data.bagWeights.length} bao lúa!`);
     }
   };
 
   return (
     <div className={`min-h-screen ${
-      darkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-100/80 text-slate-900'
-    } transition-colors duration-200 pb-16`}>
+      darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-100/90 text-slate-900'
+    } transition-colors duration-300 pb-16`}>
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-5 py-3 rounded-full shadow-2xl font-bold flex items-center gap-2 text-xs sm:text-sm animate-bounce border border-emerald-400">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-5 py-3 rounded-full shadow-2xl font-lexend font-bold flex items-center gap-2 text-xs sm:text-sm animate-bounce border border-emerald-400">
           <span>✓</span>
           <span>{toastMsg}</span>
         </div>
@@ -359,14 +419,16 @@ export default function App() {
         historyCount={savedSessions.length}
         onNewSession={handleNewSession}
         isCloudSync={isCloudSync}
+        currentUser={currentUser}
+        onOpenAuth={() => setShowAuthModal(true)}
+        onLogout={handleLogout}
       />
 
       {/* Main View Container */}
       <main className="max-w-5xl mx-auto px-3 sm:px-4 py-4">
-        {/* TAB 1: WEIGHING PANEL (CÂN LÚA) */}
+        {/* TAB 1: WEIGHING PANEL */}
         {activeTab === 'weighing' && (
           <div className="space-y-4">
-            {/* Farmer & Rice Config */}
             <FarmerInfoForm
               sessionInfo={sessionInfo}
               setSessionInfo={setSessionInfo}
@@ -374,7 +436,6 @@ export default function App() {
               onNewSession={handleNewSession}
             />
 
-            {/* Weighing Keypad & Quick Presets */}
             <WeighingPanel
               currentWeight={currentWeight}
               setCurrentWeight={setCurrentWeight}
@@ -387,7 +448,6 @@ export default function App() {
               darkMode={darkMode}
             />
 
-            {/* Bag List Grid */}
             <BagList
               bagWeights={sessionInfo.bagWeights}
               onRemoveWeight={handleRemoveWeight}
@@ -396,7 +456,6 @@ export default function App() {
               darkMode={darkMode}
             />
 
-            {/* Live Financial Summary */}
             <SummaryCard
               sessionInfo={sessionInfo}
               totals={currentTotals}
@@ -415,7 +474,7 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 2: HISTORY LIST (SỔ CÂN LỊCH SỬ) */}
+        {/* TAB 2: HISTORY LIST */}
         {activeTab === 'history' && (
           <HistoryList
             sessions={savedSessions}
@@ -435,7 +494,7 @@ export default function App() {
           <AiAdvisor darkMode={darkMode} />
         )}
 
-        {/* TAB 4: DASHBOARD REPORTING & ANALYTICS */}
+        {/* TAB 4: DASHBOARD REPORTING */}
         {activeTab === 'dashboard' && (
           <DashboardView
             sessions={savedSessions}
@@ -450,26 +509,26 @@ export default function App() {
         {/* TAB 4: YIELD CALCULATOR PAGE */}
         {activeTab === 'yield' && (
           <div className="space-y-4">
-            <div className={`p-5 rounded-2xl border ${
-              darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-amber-200'
+            <div className={`p-6 rounded-3xl border shadow-xl ${
+              darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-amber-200'
             }`}>
-              <h2 className="text-lg font-black text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-2">
-                📊 BẢNG TÍNH NĂNG SUẤT RUỘNG LÚA & LỢI NHUẬN NÔNG DÂN
+              <h2 className="font-lexend font-black text-lg text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-2">
+                📊 BẢNG TÍNH NĂNG SUẤT LÚA SÀO/MẪU TRUNG BỘ (ĐÀ NẴNG)
               </h2>
               <p className="text-xs text-slate-500 mb-4">
-                Chuyển đổi sản lượng kg từ phiếu cân thành năng suất kg/công tầm lớn ĐBSCL (1296m2), công nhỏ (1000m2), tấn/ha và dự tính lợi nhuận ròng.
+                Chuyển đổi sản lượng kg từ phiếu cân thành năng suất kg / Sào Trung Bộ (500m2), Mẫu Trung Bộ (5.000m2), Tấn/ha và dự tính lợi nhuận ròng.
               </p>
               <button
                 onClick={() => setShowYieldModal(true)}
-                className="bg-amber-600 hover:bg-amber-700 text-white font-extrabold py-3 px-6 rounded-2xl shadow-md transition-all text-sm"
+                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-lexend font-black py-3.5 px-6 rounded-2xl shadow-lg border border-amber-400/40 transition-all text-sm"
               >
-                Mở Máy Tính Năng Suất
+                Mở Máy Tính Năng Suất Sào/Mẫu
               </button>
             </div>
           </div>
         )}
 
-        {/* TAB 5: RECEIPT VIEW (PHIẾU CÂN CÓ THỂ IN) */}
+        {/* TAB 5: RECEIPT VIEW */}
         {activeTab === 'receipt' && selectedReceiptSession && (
           <ReceiptView
             session={selectedReceiptSession}
@@ -481,10 +540,20 @@ export default function App() {
 
         {/* Footer Copyright & Author Info */}
         <footer className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500 py-4 border-t border-slate-200/80 dark:border-slate-800 space-y-1">
-          <p className="font-bold text-slate-600 dark:text-slate-300">🌾 Phần mềm Cân Lúa Nông Nghiệp ĐBSCL — Phát triển bởi: Phạm Công Tuân</p>
-          <p>📞 Điện thoại: <a href="tel:0916199945" className="font-semibold hover:underline text-amber-600 dark:text-amber-400">0916199945</a> • ✉️ Email: <a href="mailto:htxhoatien2@gmail.com" className="font-semibold hover:underline text-amber-600 dark:text-amber-400">htxhoatien2@gmail.com</a></p>
+          <p className="font-bold text-slate-600 dark:text-slate-300">🌾 {HTX_INFO.name}</p>
+          <p>Tác giả phần mềm: <strong>{HTX_INFO.author}</strong> • 📞 ĐT: <a href={`tel:${HTX_INFO.phone}`} className="font-semibold hover:underline text-amber-600 dark:text-amber-400">{HTX_INFO.phone}</a> • ✉️ Email: <a href={`mailto:${HTX_INFO.email}`} className="font-semibold hover:underline text-amber-600 dark:text-amber-400">{HTX_INFO.email}</a></p>
         </footer>
       </main>
+
+      {/* Auth Login Modal */}
+      {showAuthModal && (
+        <AuthModal
+          currentUser={currentUser}
+          onLogin={handleLogin}
+          onClose={() => setShowAuthModal(false)}
+          darkMode={darkMode}
+        />
+      )}
 
       {/* OCR Scanner Modal */}
       {showOcrModal && (

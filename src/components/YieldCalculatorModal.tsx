@@ -15,8 +15,8 @@ export const YieldCalculatorModal: React.FC<YieldCalculatorModalProps> = ({
   darkMode,
 }) => {
   const [areaSize, setAreaSize] = useState<number>(10);
-  const [areaUnit, setAreaUnit] = useState<'cong_nho' | 'cong_lon' | 'ha'>('cong_lon'); // Mặc định công tầm lớn ĐBSCL (1296m2)
-  const [costPerUnit, setCostPerUnit] = useState<number>(2500000); // 2.5 triệu / công tầm lớn
+  const [areaUnit, setAreaUnit] = useState<'sao_trung_bo' | 'mau_trung_bo' | 'ha'>('sao_trung_bo'); // Mặc định Sào Trung Bộ Đà Nẵng (500m2)
+  const [costPerUnit, setCostPerUnit] = useState<number>(1200000); // 1.2 triệu / Sào Trung Bộ
 
   const yieldData = calculateYieldMetrics(netKg, areaSize, areaUnit, unitPrice, costPerUnit);
 
@@ -27,7 +27,7 @@ export const YieldCalculatorModal: React.FC<YieldCalculatorModalProps> = ({
       }`}>
         <div className="flex justify-between items-center mb-4 pb-3 border-b border-amber-500/20">
           <h3 className="font-lexend font-black text-base sm:text-lg text-amber-700 dark:text-amber-400 flex items-center gap-2">
-            <span>📊</span> TÍNH NĂNG SUẤT LÚA & LỢI NHUẬN
+            <span>📊</span> NĂNG SUẤT LÚA SÀO/MẪU TRUNG BỘ (ĐÀ NẴNG)
           </h3>
           <button onClick={onClose} className="p-1 text-slate-400 hover:text-rose-500 font-bold text-lg">
             ✕
@@ -63,42 +63,42 @@ export const YieldCalculatorModal: React.FC<YieldCalculatorModalProps> = ({
                   darkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-900'
                 }`}
               >
-                <option value="cong_lon">Công tầm lớn (1.296m² - ĐBSCL)</option>
-                <option value="cong_nho">Công tầm cắt (1.000m²)</option>
+                <option value="sao_trung_bo">Sào Trung Bộ (500m² - Đà Nẵng)</option>
+                <option value="mau_trung_bo">Mẫu Trung Bộ (5.000m² - 10 sào)</option>
                 <option value="ha">Hecta (10.000m²)</option>
               </select>
             </div>
 
             <div className="col-span-2">
               <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                Chi Phí Đầu Tư (đ / {areaUnit === 'cong_lon' ? 'công 1296m²' : areaUnit === 'cong_nho' ? 'công 1000m²' : 'ha'})
+                Chi Phí Đầu Tư (đ / {areaUnit === 'sao_trung_bo' ? 'Sào 500m²' : areaUnit === 'mau_trung_bo' ? 'Mẫu 5000m²' : 'ha'})
               </label>
               <input
                 type="number"
-                step="100000"
+                step="50000"
                 value={costPerUnit}
                 onChange={(e) => setCostPerUnit(parseFloat(e.target.value) || 0)}
                 className={`w-full p-2.5 rounded-xl border font-bold text-sm ${
                   darkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-900'
                 }`}
               />
-              <span className="text-[11px] text-slate-400 italic">Gồm: Lúa giống, phân bón, thuốc trừ sâu, tiền máy gặt, nước bơm.</span>
+              <span className="text-[11px] text-slate-400 italic">Gồm: Lúa giống, phân bón, thuốc trừ sâu, tiền máy gặt gặt đập liên hợp, nước bơm.</span>
             </div>
           </div>
 
           {/* Yield Results Card */}
           <div className="p-5 rounded-3xl bg-gradient-to-br from-amber-600 to-amber-700 text-white space-y-4 shadow-xl border border-amber-500/40">
-            <div className="text-xs font-lexend font-black uppercase text-amber-200 tracking-wider">KẾT QUẢ NĂNG SUẤT ĐỒNG RUỘNG:</div>
+            <div className="text-xs font-lexend font-black uppercase text-amber-200 tracking-wider">KẾT QUẢ NĂNG SUẤT ĐỒNG RUỘNG HTX:</div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center text-xs">
               <div className="bg-black/25 backdrop-blur-md p-3 rounded-2xl border border-white/10">
-                <span className="text-amber-200 block font-medium">Công lớn (1296m²)</span>
-                <strong className="text-lg sm:text-xl font-lexend font-black text-white">{formatNumber(yieldData.yieldPerCongLon)} kg</strong>
+                <span className="text-amber-200 block font-medium">Sào Trung Bộ (500m²)</span>
+                <strong className="text-lg sm:text-xl font-lexend font-black text-white">{formatNumber(yieldData.yieldPerSaoTrungBo)} kg</strong>
               </div>
 
               <div className="bg-black/25 backdrop-blur-md p-3 rounded-2xl border border-white/10">
-                <span className="text-amber-200 block font-medium">Công nhỏ (1000m²)</span>
-                <strong className="text-lg sm:text-xl font-lexend font-black text-white">{formatNumber(yieldData.yieldPerCongNho)} kg</strong>
+                <span className="text-amber-200 block font-medium">Mẫu Trung Bộ (5000m²)</span>
+                <strong className="text-lg sm:text-xl font-lexend font-black text-white">{formatNumber(yieldData.yieldPerMauTrungBo)} kg</strong>
               </div>
 
               <div className="col-span-2 sm:col-span-1 bg-black/25 backdrop-blur-md p-3 rounded-2xl border border-white/10">

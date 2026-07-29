@@ -1,4 +1,6 @@
 import React from 'react';
+import { User } from '../types';
+import { HTX_INFO } from '../data/riceData';
 
 interface HeaderProps {
   darkMode: boolean;
@@ -9,6 +11,9 @@ interface HeaderProps {
   historyCount: number;
   onNewSession: () => void;
   isCloudSync?: boolean;
+  currentUser: User | null;
+  onOpenAuth: () => void;
+  onLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -20,6 +25,9 @@ export const Header: React.FC<HeaderProps> = ({
   historyCount,
   onNewSession,
   isCloudSync = false,
+  currentUser,
+  onOpenAuth,
+  onLogout,
 }) => {
   return (
     <header className={`sticky top-0 z-40 border-b backdrop-blur-xl transition-all duration-300 ${
@@ -27,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
         ? 'bg-slate-950/85 border-slate-800/80 text-slate-100 shadow-2xl shadow-black/40'
         : 'bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 border-amber-600/40 text-white shadow-xl shadow-amber-950/20'
     }`}>
-      <div className="max-w-5xl mx-auto px-3 sm:px-4 py-3 flex justify-between items-center">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2.5 flex justify-between items-center">
         {/* Logo & App Title */}
         <div
           className="flex items-center gap-3 cursor-pointer group"
@@ -40,46 +48,67 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <div>
-            <h1 className="font-lexend font-black text-base sm:text-xl leading-tight flex items-center gap-2 tracking-tight">
-              <span>CÂN LÚA ĐỒNG RỘNG</span>
+            <h1 className="font-lexend font-black text-base sm:text-lg leading-tight flex items-center gap-2 tracking-tight">
+              <span>HTX HÒA TIẾN 2 — ĐÀ NẴNG</span>
               {isCloudSync ? (
-                <span className="text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-400/40 uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                <span className="text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/40 uppercase tracking-wider flex items-center gap-1 shadow-xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  Cloud Sync
+                  Cloud
                 </span>
               ) : (
-                <span className="text-[10px] font-bold bg-amber-500/20 text-amber-200 px-2.5 py-0.5 rounded-full border border-amber-400/30 uppercase tracking-wider flex items-center gap-1">
+                <span className="text-[10px] font-bold bg-amber-500/20 text-amber-200 px-2 py-0.5 rounded-full border border-amber-400/30 uppercase tracking-wider flex items-center gap-1">
                   <span>💾</span> Offline
                 </span>
               )}
             </h1>
-            <p className="text-[11px] sm:text-xs text-amber-100/80 font-medium tracking-wide">
-              Phần Mềm Sổ Cân Lúa & Tính Tiền Thông Minh ĐBSCL
+            <p className="text-[11px] sm:text-xs text-amber-100/90 font-medium tracking-wide">
+              {HTX_INFO.address}
             </p>
           </div>
         </div>
 
-        {/* Right Header Controls */}
+        {/* Right Header Controls: User Login Status */}
         <div className="flex items-center gap-2">
+          {/* User Status Pill */}
+          {currentUser ? (
+            <div className="flex items-center gap-1.5 bg-black/30 border border-white/20 px-2.5 py-1 rounded-2xl text-xs">
+              <span className="text-amber-300 font-bold">👤 {currentUser.fullName}</span>
+              <button
+                type="button"
+                onClick={onLogout}
+                className="text-[10px] font-bold text-rose-300 hover:text-rose-100 underline ml-1"
+                title="Đăng xuất tài khoản"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onOpenAuth}
+              className="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-lexend font-black px-3 py-1.5 rounded-2xl shadow-md transition-all border border-amber-300 flex items-center gap-1"
+            >
+              <span>🔑</span> Đăng Nhập
+            </button>
+          )}
+
           <button
             onClick={onNewSession}
             title="Tạo phiếu cân mới"
-            className="hidden sm:flex items-center gap-1.5 text-xs bg-white/10 hover:bg-white/20 active:scale-95 text-white font-extrabold px-3.5 py-2 rounded-2xl border border-white/20 transition-all shadow-md backdrop-blur-md"
+            className="hidden sm:flex items-center gap-1.5 text-xs bg-white/10 hover:bg-white/20 active:scale-95 text-white font-extrabold px-3 py-1.5 rounded-2xl border border-white/20 transition-all shadow-md backdrop-blur-md"
           >
             <span className="text-amber-300">✨</span> Tạo Phiếu Mới
           </button>
 
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className={`p-2 sm:px-3.5 sm:py-2 rounded-2xl text-xs font-black transition-all flex items-center gap-1.5 border shadow-md active:scale-95 ${
+            className={`p-2 rounded-2xl text-xs font-black transition-all flex items-center gap-1 border shadow-md active:scale-95 ${
               darkMode
-                ? 'bg-slate-900/90 border-slate-700/80 text-amber-400 hover:bg-slate-800 hover:border-amber-500/50'
+                ? 'bg-slate-900/90 border-slate-700/80 text-amber-400 hover:bg-slate-800'
                 : 'bg-black/20 border-white/20 text-amber-100 hover:bg-black/30'
             }`}
             title={darkMode ? 'Chuyển chế độ sáng' : 'Chuyển chế độ tối'}
           >
             <span>{darkMode ? '☀️' : '🌙'}</span>
-            <span className="hidden sm:inline">{darkMode ? 'Giao Diện Sáng' : 'Chế Độ Tối'}</span>
           </button>
         </div>
       </div>
@@ -89,9 +118,9 @@ export const Header: React.FC<HeaderProps> = ({
         <nav className="flex p-1 bg-black/25 backdrop-blur-md rounded-2xl border border-white/10 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab('weighing')}
-            className={`flex-1 min-w-[75px] py-2 px-2.5 text-center text-xs sm:text-sm font-lexend font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 min-w-[75px] py-2 px-2 text-center text-xs sm:text-sm font-lexend font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-1 ${
               activeTab === 'weighing'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/30 scale-[1.02]'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg scale-[1.02]'
                 : 'text-slate-200 hover:text-white hover:bg-white/10'
             }`}
           >
@@ -106,9 +135,9 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab('history')}
-            className={`flex-1 min-w-[75px] py-2 px-2.5 text-center text-xs sm:text-sm font-lexend font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 min-w-[75px] py-2 px-2 text-center text-xs sm:text-sm font-lexend font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-1 ${
               activeTab === 'history'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/30 scale-[1.02]'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg scale-[1.02]'
                 : 'text-slate-200 hover:text-white hover:bg-white/10'
             }`}
           >
@@ -123,9 +152,9 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab('ai_advisor')}
-            className={`flex-1 min-w-[95px] py-2 px-2.5 text-center text-xs sm:text-sm font-lexend font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 min-w-[95px] py-2 px-2 text-center text-xs sm:text-sm font-lexend font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-1 ${
               activeTab === 'ai_advisor'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/30 scale-[1.02]'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg scale-[1.02]'
                 : 'text-slate-200 hover:text-white hover:bg-white/10'
             }`}
           >
@@ -135,9 +164,9 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex-1 min-w-[75px] py-2 px-2.5 text-center text-xs sm:text-sm font-lexend font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 min-w-[75px] py-2 px-2 text-center text-xs sm:text-sm font-lexend font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-1 ${
               activeTab === 'dashboard'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/30 scale-[1.02]'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg scale-[1.02]'
                 : 'text-slate-200 hover:text-white hover:bg-white/10'
             }`}
           >
@@ -147,9 +176,9 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab('yield')}
-            className={`flex-1 min-w-[90px] py-2 px-2.5 text-center text-xs sm:text-sm font-lexend font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 min-w-[90px] py-2 px-2 text-center text-xs sm:text-sm font-lexend font-black rounded-xl transition-all duration-200 flex items-center justify-center gap-1 ${
               activeTab === 'yield'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/30 scale-[1.02]'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg scale-[1.02]'
                 : 'text-slate-200 hover:text-white hover:bg-white/10'
             }`}
           >

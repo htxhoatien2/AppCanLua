@@ -145,29 +145,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
   }, [filteredSessions]);
 
-  // Top Farmers & Buyers
-  const topFarmers = useMemo(() => {
-    const map = new Map<string, { name: string; phone?: string; totalNetKg: number; totalAmount: number }>();
-
-    filteredSessions.forEach((s) => {
-      const name = s.farmerName || 'Chủ ruộng vãng lai';
-      const calc = s.calculated || calculateTotals(s.bagWeights, s);
-      const current = map.get(name) || { name, phone: s.farmerPhone, totalNetKg: 0, totalAmount: 0 };
-
-      current.totalNetKg += (calc.finalNetWeight || 0);
-      current.totalAmount += calc.totalAmount;
-
-      map.set(name, current);
-    });
-
-    return Array.from(map.values()).sort((a, b) => b.totalNetKg - a.totalNetKg).slice(0, 5);
-  }, [filteredSessions]);
-
-  const topBuyers = useMemo(() => {
+  // Top Xe Nhận Lúa
+  const topTrucks = useMemo(() => {
     const map = new Map<string, { name: string; totalNetKg: number; totalAmount: number; count: number }>();
 
     filteredSessions.forEach((s) => {
-      const name = s.buyerName || 'Thương lái chưa ghi';
+      const name = s.truckInfo || 'Xe HTX chưa ghi';
       const calc = s.calculated || calculateTotals(s.bagWeights, s);
       const current = map.get(name) || { name, totalNetKg: 0, totalAmount: 0, count: 0 };
 
@@ -178,7 +161,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       map.set(name, current);
     });
 
-    return Array.from(map.values()).sort((a, b) => b.totalAmount - a.totalAmount).slice(0, 5);
+    return Array.from(map.values()).sort((a, b) => b.totalNetKg - a.totalNetKg).slice(0, 5);
+  }, [filteredSessions]);
+
+  // Top Cán Bộ Cân HTX
+  const topOperators = useMemo(() => {
+    const map = new Map<string, { name: string; totalNetKg: number; totalAmount: number; count: number }>();
+
+    filteredSessions.forEach((s) => {
+      const name = s.operatorName || 'Phạm Công Tuân';
+      const calc = s.calculated || calculateTotals(s.bagWeights, s);
+      const current = map.get(name) || { name, totalNetKg: 0, totalAmount: 0, count: 0 };
+
+      current.totalNetKg += (calc.finalNetWeight || 0);
+      current.totalAmount += calc.totalAmount;
+      current.count += 1;
+
+      map.set(name, current);
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.totalNetKg - a.totalNetKg).slice(0, 5);
   }, [filteredSessions]);
 
   return (
@@ -192,11 +194,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex items-center gap-2.5">
               <span className="text-2xl">📈</span>
               <h2 className="text-xl sm:text-2xl font-lexend font-black text-slate-800 dark:text-slate-100 tracking-tight">
-                BÁO CÁO & THỐNG KÊ CÂN LÚA
+                BÁO CÁO SẢN LƯỢNG HTX HÒA TIẾN 2 (ĐÀ NẴNG)
               </h2>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Phân tích sản lượng, doanh thu, giống lúa và dư nợ thanh toán tổng hợp
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
+              Phân tích sản lượng lúa, doanh thu, giống lúa HT1, ĐV108... theo từng Xe Nhận & Cán Bộ Cân
             </p>
           </div>
 
@@ -344,7 +346,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         }`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-lexend font-black text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <span>🌱</span> Phân Bổ Sản Lượng Theo Giống Lúa
+              <span>🌱</span> Phân Bổ Sản Lượng Theo Giống Lúa (HT1, ĐV108...)
             </h3>
             <span className="text-xs font-bold text-amber-700 bg-amber-500/10 dark:bg-amber-900/30 px-3 py-1 rounded-full border border-amber-500/20">
               {riceVarietyData.length} giống
@@ -407,7 +409,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         }`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-lexend font-black text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <span>📅</span> Tiến Độ Cân Lúa Theo Thời Gian
+              <span>📅</span> Tiến Độ Cân Lúa Thu Hoạch Theo Ngày
             </h3>
             <span className="text-xs font-bold text-emerald-700 bg-emerald-500/10 dark:bg-emerald-900/30 px-3 py-1 rounded-full border border-emerald-500/20">
               {timelineData.length} ngày cân
@@ -458,23 +460,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Top Rankings */}
+      {/* Top Rankings: Xe Nhận & Cán Bộ Cân */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Farmers */}
+        {/* Top Trucks */}
         <div className={`p-5 sm:p-6 rounded-3xl border shadow-xl ${
           darkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-slate-200'
         }`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-lexend font-black text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <span>🌾</span> Top Chủ Ruộng Thu Hoạch Lớn Nhất
+              <span>🚛</span> Top Xe Nhận Lúa HTX Hòa Tiến 2
             </h3>
           </div>
 
-          {topFarmers.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-6">Chưa có dữ liệu chủ ruộng</p>
+          {topTrucks.length === 0 ? (
+            <p className="text-xs text-slate-400 text-center py-6">Chưa có dữ liệu xe nhận</p>
           ) : (
             <div className="space-y-2.5">
-              {topFarmers.map((farmer, idx) => (
+              {topTrucks.map((truck, idx) => (
                 <div
                   key={idx}
                   className={`p-3.5 rounded-2xl border flex items-center justify-between transition-all ${
@@ -483,21 +485,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 >
                   <div className="flex items-center gap-3">
                     <span className={`w-8 h-8 rounded-2xl font-lexend font-black text-xs flex items-center justify-center text-white shadow-sm ${
-                      idx === 0 ? 'bg-amber-500 text-slate-950' : idx === 1 ? 'bg-slate-400' : idx === 2 ? 'bg-amber-700' : 'bg-slate-700'
+                      idx === 0 ? 'bg-amber-500 text-slate-950' : idx === 1 ? 'bg-slate-400' : 'bg-slate-700'
                     }`}>
                       #{idx + 1}
                     </span>
                     <div>
-                      <h4 className="font-lexend font-bold text-sm text-slate-800 dark:text-slate-100">{farmer.name}</h4>
-                      {farmer.phone && <p className="text-[11px] text-slate-400 font-semibold">📞 {farmer.phone}</p>}
+                      <h4 className="font-lexend font-bold text-sm text-slate-800 dark:text-slate-100">{truck.name}</h4>
+                      <p className="text-[11px] text-slate-400 font-semibold">{truck.count} chuyến lúa</p>
                     </div>
                   </div>
 
                   <div className="text-right font-lexend">
                     <div className="font-black text-amber-700 dark:text-amber-400 text-base">
-                      {formatNumber(farmer.totalNetKg)} kg
+                      {formatNumber(truck.totalNetKg)} kg
                     </div>
-                    <div className="text-xs text-slate-500 font-bold">{formatVND(farmer.totalAmount)}</div>
+                    <div className="text-xs text-slate-500 font-bold">{formatVND(truck.totalAmount)}</div>
                   </div>
                 </div>
               ))}
@@ -505,21 +507,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           )}
         </div>
 
-        {/* Top Buyers */}
+        {/* Top Operators */}
         <div className={`p-5 sm:p-6 rounded-3xl border shadow-xl ${
           darkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-slate-200'
         }`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-lexend font-black text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <span>🚛</span> Top Lái Cân / Thương Lái Mua
+              <span>👤</span> Top Cán Bộ Cân Tại Các Điểm Cân
             </h3>
           </div>
 
-          {topBuyers.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-6">Chưa có dữ liệu thương lái</p>
+          {topOperators.length === 0 ? (
+            <p className="text-xs text-slate-400 text-center py-6">Chưa có dữ liệu cán bộ cân</p>
           ) : (
             <div className="space-y-2.5">
-              {topBuyers.map((buyer, idx) => (
+              {topOperators.map((operator, idx) => (
                 <div
                   key={idx}
                   className={`p-3.5 rounded-2xl border flex items-center justify-between transition-all ${
@@ -533,16 +535,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       #{idx + 1}
                     </span>
                     <div>
-                      <h4 className="font-lexend font-bold text-sm text-slate-800 dark:text-slate-100">{buyer.name}</h4>
-                      <p className="text-[11px] text-slate-400 font-semibold">{buyer.count} chuyến/phiếu mua</p>
+                      <h4 className="font-lexend font-bold text-sm text-slate-800 dark:text-slate-100">{operator.name}</h4>
+                      <p className="text-[11px] text-slate-400 font-semibold">{operator.count} lượt thực hiện cân</p>
                     </div>
                   </div>
 
                   <div className="text-right font-lexend">
                     <div className="font-black text-emerald-700 dark:text-emerald-400 text-base">
-                      {formatVND(buyer.totalAmount)}
+                      {formatNumber(operator.totalNetKg)} kg
                     </div>
-                    <div className="text-xs text-slate-500 font-bold">{formatNumber(buyer.totalNetKg)} kg</div>
+                    <div className="text-xs text-slate-500 font-bold">{formatVND(operator.totalAmount)}</div>
                   </div>
                 </div>
               ))}

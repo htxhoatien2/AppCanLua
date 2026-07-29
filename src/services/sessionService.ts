@@ -4,7 +4,6 @@ import { calculateTotals } from '../utils/formatters';
 
 const STORAGE_KEY = 'rice_weighing_history_v2';
 
-// LocalStorage helpers
 export function getLocalSessions(): WeighingSession[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -23,19 +22,28 @@ export function saveLocalSessions(sessions: WeighingSession[]): void {
   }
 }
 
-// Convert DB Row -> WeighingSession object
 function mapRowToSession(row: any): WeighingSession {
   return {
     id: row.id,
+    userId: row.user_id || undefined,
+    operatorName: row.operator_name || 'Phạm Công Tuân',
     farmerName: row.farmer_name || '',
     farmerPhone: row.farmer_phone || '',
-    buyerName: row.buyer_name || '',
-    buyerPhone: row.buyer_phone || '',
-    location: row.location || '',
-    riceType: row.rice_type || 'OM 5451',
+    truckInfo: row.truck_info || row.buyer_name || 'Xe HTX',
+    truckPhone: row.truck_phone || row.buyer_phone || '',
+    location: row.location || 'Đồng ruộng HTX Hòa Tiến 2',
+    riceType: row.rice_type || 'HT1',
     unitPrice: Number(row.unit_price) || 0,
+
+    tareType: row.tare_type || 'per_bag',
     tarePerBag: Number(row.tare_per_bag) || 0,
+    tareFixedTotal: row.tare_fixed_total ? Number(row.tare_fixed_total) : undefined,
+
+    impurityType: row.impurity_type || 'percent',
     impurityPercent: Number(row.impurity_percent) || 0,
+    impurityFixedKg: row.impurity_fixed_kg ? Number(row.impurity_fixed_kg) : undefined,
+    moisturePercent: row.moisture_percent ? Number(row.moisture_percent) : undefined,
+
     deposit: Number(row.deposit) || 0,
     date: row.date || new Date().toISOString().split('T')[0],
     note: row.note || '',
@@ -43,47 +51,62 @@ function mapRowToSession(row: any): WeighingSession {
     calculated: row.calculated || calculateTotals(row.bag_weights || [], row),
     createdAt: row.created_at ? new Date(row.created_at).toLocaleString('vi-VN') : new Date().toLocaleString('vi-VN'),
     areaSize: row.area_size ? Number(row.area_size) : undefined,
-    areaUnit: row.area_unit || undefined,
+    areaUnit: row.area_unit || 'sao_trung_bo',
   };
 }
 
-// Convert WeighingSession -> DB Row object
 function mapSessionToRow(session: WeighingSession): any {
   return {
     id: session.id,
+    user_id: session.userId || null,
+    operator_name: session.operatorName,
     farmer_name: session.farmerName,
     farmer_phone: session.farmerPhone || null,
-    buyer_name: session.buyerName,
-    buyer_phone: session.buyerPhone || null,
+    truck_info: session.truckInfo,
+    truck_phone: session.truckPhone || null,
     location: session.location || null,
     rice_type: session.riceType,
     unit_price: session.unitPrice,
+
+    tare_type: session.tareType,
     tare_per_bag: session.tarePerBag,
+    tare_fixed_total: session.tareFixedTotal || null,
+
+    impurity_type: session.impurityType,
     impurity_percent: session.impurityPercent,
+    impurity_fixed_kg: session.impurityFixedKg || null,
+    moisture_percent: session.moisturePercent || null,
+
     deposit: session.deposit,
     date: session.date,
     note: session.note || null,
     bag_weights: session.bagWeights,
     calculated: session.calculated || calculateTotals(session.bagWeights, session),
     area_size: session.areaSize || null,
-    area_unit: session.areaUnit || null,
+    area_unit: session.areaUnit || 'sao_trung_bo',
   };
 }
 
 /**
  * Fetch all sessions (Supabase Cloud + LocalStorage Fallback)
+ * Filter by userId if specified
  */
-export async function fetchSessions(): Promise<{ sessions: WeighingSession[]; isCloud: boolean }> {
+export async function fetchSessions(filterUserId?: string): Promise<{ sessions: WeighingSession[]; isCloud: boolean }> {
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('weighing_sessions')
         .select('*')
         .order('created_at', { ascending: false });
 
+      if (filterUserId) {
+        query = query.eq('user_id', filterUserId);
+      }
+
+      const { data, error } = await query;
+
       if (!error && data) {
         const cloudSessions = data.map(mapRowToSession);
-        // Sync cloud to local for offline backup
         saveLocalSessions(cloudSessions);
         return { sessions: cloudSessions, isCloud: true };
       } else {
@@ -94,14 +117,17 @@ export async function fetchSessions(): Promise<{ sessions: WeighingSession[]; is
     }
   }
 
-  return { sessions: getLocalSessions(), isCloud: false };
+  let local = getLocalSessions();
+  if (filterUserId) {
+    local = local.filter((s) => !s.userId || s.userId === filterUserId);
+  }
+  return { sessions: local, isCloud: false };
 }
 
 /**
  * Save or Update a weighing session
  */
 export async function saveSession(session: WeighingSession): Promise<{ success: boolean; isCloud: boolean }> {
-  // Update LocalStorage immediately
   const localHistory = getLocalSessions();
   const existingIdx = localHistory.findIndex((s) => s.id === session.id);
   let updatedLocal: WeighingSession[] = [];
@@ -114,7 +140,6 @@ export async function saveSession(session: WeighingSession): Promise<{ success: 
   }
   saveLocalSessions(updatedLocal);
 
-  // Sync to Supabase Cloud if configured
   if (isSupabaseConfigured && supabase) {
     try {
       const dbRow = mapSessionToRow(session);
@@ -139,11 +164,9 @@ export async function saveSession(session: WeighingSession): Promise<{ success: 
  * Delete a weighing session
  */
 export async function deleteSession(id: string): Promise<{ success: boolean; isCloud: boolean }> {
-  // Delete from LocalStorage
   const localHistory = getLocalSessions().filter((s) => s.id !== id);
   saveLocalSessions(localHistory);
 
-  // Delete from Supabase Cloud
   if (isSupabaseConfigured && supabase) {
     try {
       const { error } = await supabase
