@@ -3,7 +3,7 @@ import { WeighingSession, OcrResult, User, AdminConfig } from './types';
 import { calculateTotals, generateZaloShareText } from './utils/formatters';
 import { playBase64PcmAudio } from './utils/audioUtils';
 import { fetchSessions, saveSession as saveSessionToService, deleteSession as deleteSessionFromService } from './services/sessionService';
-import { fetchAdminConfig, saveAdminConfig, DEFAULT_ADMIN_CONFIG } from './services/adminService';
+import { fetchAdminConfig, saveAdminConfig, DEFAULT_ADMIN_CONFIG, getLocalUsers, saveLocalUsers } from './services/adminService';
 import { isSupabaseConfigured } from './lib/supabase';
 
 import { Sidebar } from './components/Sidebar';
@@ -16,7 +16,7 @@ import { HistoryList } from './components/HistoryList';
 import { AiAdvisor } from './components/AiAdvisor';
 import { YieldCalculatorModal } from './components/YieldCalculatorModal';
 import { DashboardView } from './components/DashboardView';
-import { AdminManagementView } from './components/AdminManagementView';
+import { AdminPortal } from './components/admin/AdminPortal';
 import { OcrModal } from './components/OcrModal';
 import { SmartParseModal } from './components/SmartParseModal';
 import { AuthModal } from './components/AuthModal';
@@ -28,8 +28,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard' | 'admin'>('weighing');
   const [isCloudSync, setIsCloudSync] = useState<boolean>(isSupabaseConfigured);
 
-  // Admin Config State
+  // Admin Config & Users State
   const [adminConfig, setAdminConfig] = useState<AdminConfig>(DEFAULT_ADMIN_CONFIG);
+  const [usersList, setUsersList] = useState<User[]>(() => getLocalUsers());
 
   // User State
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -108,7 +109,22 @@ export default function App() {
     loadData();
   }, []);
 
-  // Handle Save Admin Config
+  // Refresh All Data after Restore / Import
+  const handleRefreshAllData = async () => {
+    const [sessionsRes, configRes] = await Promise.all([
+      fetchSessions(),
+      fetchAdminConfig(),
+    ]);
+    setSavedSessions(sessionsRes.sessions);
+    setAdminConfig(configRes);
+    setUsersList(getLocalUsers());
+  };
+
+  const handleSaveUsersList = (newUsers: User[]) => {
+    setUsersList(newUsers);
+    saveLocalUsers(newUsers);
+  };
+
   const handleSaveAdminConfig = async (newConfig: AdminConfig) => {
     setAdminConfig(newConfig);
     await saveAdminConfig(newConfig);
@@ -543,11 +559,15 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 6: ADMIN MANAGEMENT PAGE */}
+          {/* TAB 6: ADMIN PORTAL DASHBOARD */}
           {activeTab === 'admin' && currentUser?.role === 'admin' && (
-            <AdminManagementView
+            <AdminPortal
               config={adminConfig}
               onSaveConfig={handleSaveAdminConfig}
+              users={usersList}
+              onSaveUsers={handleSaveUsersList}
+              sessions={savedSessions}
+              onRefreshAllData={handleRefreshAllData}
               darkMode={darkMode}
             />
           )}
