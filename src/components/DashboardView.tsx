@@ -206,6 +206,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-bold shadow-inner">
               <button
+                type="button"
+                aria-label="Lọc tất cả thời gian"
                 onClick={() => setTimeFilter('all')}
                 className={`px-3 py-1.5 rounded-xl font-lexend transition-all ${
                   timeFilter === 'all'
@@ -216,6 +218,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Tất cả
               </button>
               <button
+                type="button"
+                aria-label="Lọc thời gian tháng này"
                 onClick={() => setTimeFilter('thisMonth')}
                 className={`px-3 py-1.5 rounded-xl font-lexend transition-all ${
                   timeFilter === 'thisMonth'
@@ -226,6 +230,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Tháng này
               </button>
               <button
+                type="button"
+                aria-label="Lọc 30 ngày gần nhất"
                 onClick={() => setTimeFilter('30days')}
                 className={`px-3 py-1.5 rounded-xl font-lexend transition-all ${
                   timeFilter === '30days'
@@ -236,6 +242,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 30 Ngày
               </button>
               <button
+                type="button"
+                aria-label="Lọc 7 ngày gần nhất"
                 onClick={() => setTimeFilter('7days')}
                 className={`px-3 py-1.5 rounded-xl font-lexend transition-all ${
                   timeFilter === '7days'
@@ -248,6 +256,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             <select
+              aria-label="Lọc theo giống lúa"
               value={selectedRiceType}
               onChange={(e) => setSelectedRiceType(e.target.value)}
               className={`p-2.5 text-xs font-lexend font-extrabold rounded-2xl border transition-all ${

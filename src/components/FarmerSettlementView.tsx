@@ -97,11 +97,14 @@ export const FarmerSettlementView: React.FC<FarmerSettlementViewProps> = ({
           </div>
 
           <button
+            type="button"
+            aria-label="In phiếu quyết toán hộ nông dân"
             onClick={handlePrintSettlement}
             disabled={farmerSessions.length === 0}
-            className="text-xs bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-lexend font-black px-5 py-2.5 rounded-2xl shadow-lg border border-emerald-400 shrink-0"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-lexend font-black px-5 py-3 rounded-2xl shadow-lg transition-all text-xs flex items-center justify-center gap-2 border border-emerald-500 disabled:opacity-50"
           >
-            🖨️ In Bảng Quyết Toán A4
+            <span>🖨</span>
+            <span>In Bảng Quyết Toán</span>
           </button>
         </div>
       </div>

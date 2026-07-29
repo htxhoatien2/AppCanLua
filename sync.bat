@@ -1,4 +1,4 @@
 @echo off
 git add .
-git commit -m "feat: implement AppCanLua Design System v1.0 & UX Flow"
+git commit -m "feat: complete scientific and practical redesign of AppCanLua"
 git push

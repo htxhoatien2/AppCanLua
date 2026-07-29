@@ -102,6 +102,7 @@ export const TruckBatchView: React.FC<TruckBatchViewProps> = ({
           {activeBatch && (
             <button
               onClick={() => setActiveBatch(null)}
+              aria-label="Tạo chuyến xe mới"
               className="text-xs bg-slate-200 dark:bg-slate-800 font-bold px-4 py-2.5 rounded-2xl"
             >
               ← Tạo Chuyến Mới
