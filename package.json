@@ -1,7 +1,13 @@
 {
-  "name": "react-example",
+  "name": "app-can-lua",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Phần mềm Cân Lúa Nông Nghiệp & Tính Tiền Thông Minh cho ĐBSCL",
+  "author": {
+    "name": "Phạm Công Tuân",
+    "email": "htxhoatien2@gmail.com",
+    "phone": "0916199945"
+  },
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

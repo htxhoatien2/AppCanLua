@@ -27,14 +27,14 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
   const selectedVarietyObj = POPULAR_RICE_VARIETIES.find((v) => v.name === sessionInfo.riceType);
 
   return (
-    <div className={`p-4 rounded-2xl border shadow-sm transition-colors ${
-      darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-amber-200/80 shadow-amber-900/5'
+    <div className={`p-4 sm:p-5 rounded-3xl border shadow-xl transition-all duration-300 ${
+      darkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-amber-200/90 shadow-amber-900/5'
     }`}>
       <div className="flex justify-between items-center mb-3 pb-2 border-b border-amber-500/20">
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 font-black text-sm text-amber-700 dark:text-amber-400 uppercase tracking-wide text-left"
+          className="flex items-center gap-2 font-lexend font-black text-sm text-amber-700 dark:text-amber-400 uppercase tracking-wide text-left"
         >
           <span>👤 THÔNG TIN CHỦ RUỘNG & GIÁ CẢ</span>
           <span className="text-xs text-slate-400 font-normal">
@@ -44,14 +44,14 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
 
         <div className="flex items-center gap-2">
           {sessionInfo.farmerName && (
-            <span className="text-xs font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-300/40">
-              {sessionInfo.farmerName} • {sessionInfo.riceType}
+            <span className="text-xs font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 px-3 py-1 rounded-full border border-amber-400/30">
+              🌾 {sessionInfo.farmerName} • {sessionInfo.riceType}
             </span>
           )}
           <button
             type="button"
             onClick={onNewSession}
-            className="text-xs text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900/50 transition-colors"
+            className="text-xs text-rose-600 dark:text-rose-400 font-extrabold bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 transition-all shadow-xs"
           >
             🔄 Tạo Mới
           </button>
@@ -70,8 +70,8 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
               placeholder="VD: Anh Tám Cò, Chú Ba..."
               value={sessionInfo.farmerName}
               onChange={(e) => handleChange('farmerName', e.target.value)}
-              className={`w-full p-2.5 rounded-xl border font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+              className={`w-full p-2.5 rounded-xl border font-semibold focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500 transition-all ${
+                darkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
               }`}
             />
           </div>
@@ -86,8 +86,8 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
               placeholder="0913xxx..."
               value={sessionInfo.farmerPhone || ''}
               onChange={(e) => handleChange('farmerPhone', e.target.value)}
-              className={`w-full p-2.5 rounded-xl border font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+              className={`w-full p-2.5 rounded-xl border font-semibold focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500 transition-all ${
+                darkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
               }`}
             />
           </div>
@@ -102,8 +102,8 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
               placeholder="VD: Anh Ba Ghe, Thương Lái X..."
               value={sessionInfo.buyerName}
               onChange={(e) => handleChange('buyerName', e.target.value)}
-              className={`w-full p-2.5 rounded-xl border font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+              className={`w-full p-2.5 rounded-xl border font-semibold focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500 transition-all ${
+                darkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
               }`}
             />
           </div>
@@ -124,8 +124,8 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
                   unitPrice: found ? found.defaultPrice : prev.unitPrice,
                 }));
               }}
-              className={`w-full p-2.5 rounded-xl border font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                darkMode ? 'bg-slate-900 border-slate-700 text-amber-400' : 'bg-slate-50 border-slate-300 text-amber-800'
+              className={`w-full p-2.5 rounded-xl border font-lexend font-black focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500 transition-all ${
+                darkMode ? 'bg-slate-950 border-slate-700 text-amber-400' : 'bg-slate-50 border-slate-300 text-amber-800'
               }`}
             >
               {POPULAR_RICE_VARIETIES.map((v) => (
@@ -147,8 +147,8 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
               placeholder="8500"
               value={sessionInfo.unitPrice}
               onChange={(e) => handleChange('unitPrice', parseFloat(e.target.value) || 0)}
-              className={`w-full p-2.5 rounded-xl border font-black text-base focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                darkMode ? 'bg-slate-900 border-slate-700 text-amber-400' : 'bg-amber-50/80 border-amber-300 text-amber-900'
+              className={`w-full p-2.5 rounded-xl border font-lexend font-black text-base focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500 transition-all ${
+                darkMode ? 'bg-slate-950 border-slate-700 text-amber-400' : 'bg-amber-50/80 border-amber-300 text-amber-900'
               }`}
             />
           </div>
@@ -158,7 +158,7 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
             <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
               Trừ Bì Bao (kg/bao)
             </label>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               <input
                 type="number"
                 step="0.05"
@@ -166,17 +166,17 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
                 max="2"
                 value={sessionInfo.tarePerBag}
                 onChange={(e) => handleChange('tarePerBag', parseFloat(e.target.value) || 0)}
-                className={`w-full p-2.5 rounded-xl border font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                  darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                className={`w-full p-2.5 rounded-xl border font-bold focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500 transition-all ${
+                  darkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
                 }`}
               />
               <button
                 type="button"
                 onClick={() => handleChange('tarePerBag', 0.1)}
-                className={`px-2 text-xs font-bold rounded-lg border ${
+                className={`px-2.5 text-xs font-black rounded-xl border transition-all ${
                   sessionInfo.tarePerBag === 0.1
-                    ? 'bg-amber-600 text-white border-amber-600'
-                    : 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-300'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                    : 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-300'
                 }`}
                 title="Chuẩn 0.1 kg (1 lạng)"
               >
@@ -190,7 +190,7 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
             <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
               Trừ Lép / Ẩm (%)
             </label>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               <input
                 type="number"
                 step="0.5"
@@ -199,17 +199,17 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
                 placeholder="0"
                 value={sessionInfo.impurityPercent}
                 onChange={(e) => handleChange('impurityPercent', parseFloat(e.target.value) || 0)}
-                className={`w-full p-2.5 rounded-xl border font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                  darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                className={`w-full p-2.5 rounded-xl border font-bold focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500 transition-all ${
+                  darkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
                 }`}
               />
               <button
                 type="button"
                 onClick={() => handleChange('impurityPercent', 2)}
-                className={`px-2 text-xs font-bold rounded-lg border ${
+                className={`px-2.5 text-xs font-black rounded-xl border transition-all ${
                   sessionInfo.impurityPercent === 2
-                    ? 'bg-amber-600 text-white border-amber-600'
-                    : 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-300'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                    : 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-300'
                 }`}
                 title="Mưa bão trừ 2%"
               >
@@ -229,8 +229,8 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
               placeholder="0"
               value={sessionInfo.deposit}
               onChange={(e) => handleChange('deposit', parseFloat(e.target.value) || 0)}
-              className={`w-full p-2.5 rounded-xl border font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                darkMode ? 'bg-slate-900 border-slate-700 text-emerald-400' : 'bg-slate-50 border-slate-300 text-emerald-800'
+              className={`w-full p-2.5 rounded-xl border font-bold focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500 transition-all ${
+                darkMode ? 'bg-slate-950 border-slate-700 text-emerald-400' : 'bg-slate-50 border-slate-300 text-emerald-800'
               }`}
             />
           </div>
@@ -244,8 +244,8 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
               type="date"
               value={sessionInfo.date}
               onChange={(e) => handleChange('date', e.target.value)}
-              className={`w-full p-2.5 rounded-xl border font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+              className={`w-full p-2.5 rounded-xl border font-semibold focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500 transition-all ${
+                darkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
               }`}
             />
           </div>
@@ -260,8 +260,8 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
               placeholder="VD: Ruộng kênh 3, lúa tươi gặt máy gặt đập liên hợp..."
               value={sessionInfo.note || ''}
               onChange={(e) => handleChange('note', e.target.value)}
-              className={`w-full p-2.5 rounded-xl border text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+              className={`w-full p-2.5 rounded-xl border text-xs sm:text-sm focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500 transition-all ${
+                darkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
               }`}
             />
           </div>
@@ -269,7 +269,7 @@ export const FarmerInfoForm: React.FC<FarmerInfoFormProps> = ({
       )}
 
       {selectedVarietyObj && isExpanded && (
-        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 italic">
+        <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 italic">
           <span>💡</span>
           <span>{selectedVarietyObj.description}</span>
         </div>

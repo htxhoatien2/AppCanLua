@@ -478,6 +478,12 @@ export default function App() {
             darkMode={darkMode}
           />
         )}
+
+        {/* Footer Copyright & Author Info */}
+        <footer className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500 py-4 border-t border-slate-200/80 dark:border-slate-800 space-y-1">
+          <p className="font-bold text-slate-600 dark:text-slate-300">🌾 Phần mềm Cân Lúa Nông Nghiệp ĐBSCL — Phát triển bởi: Phạm Công Tuân</p>
+          <p>📞 Điện thoại: <a href="tel:0916199945" className="font-semibold hover:underline text-amber-600 dark:text-amber-400">0916199945</a> • ✉️ Email: <a href="mailto:htxhoatien2@gmail.com" className="font-semibold hover:underline text-amber-600 dark:text-amber-400">htxhoatien2@gmail.com</a></p>
+        </footer>
       </main>
 
       {/* OCR Scanner Modal */}
