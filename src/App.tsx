@@ -17,6 +17,8 @@ import { AiAdvisor } from './components/AiAdvisor';
 import { YieldCalculatorModal } from './components/YieldCalculatorModal';
 import { DashboardView } from './components/DashboardView';
 import { AdminPortal } from './components/admin/AdminPortal';
+import { TruckBatchView } from './components/TruckBatchView';
+import { FarmerSettlementView } from './components/FarmerSettlementView';
 import { OcrModal } from './components/OcrModal';
 import { SmartParseModal } from './components/SmartParseModal';
 import { AuthModal } from './components/AuthModal';
@@ -25,7 +27,7 @@ const USER_STORAGE_KEY = 'htx_hoatien2_current_user';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard' | 'admin'>('weighing');
+  const [activeTab, setActiveTab] = useState<'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard' | 'admin' | 'truck_batch' | 'farmer_settlement'>('weighing');
   const [isCloudSync, setIsCloudSync] = useState<boolean>(isSupabaseConfigured);
 
   // Admin Config & Users State
@@ -505,7 +507,25 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 2: HISTORY LIST */}
+          {/* TAB 2: TRUCK BATCH VIEW (Chức Năng 4) */}
+          {activeTab === 'truck_batch' && (
+            <TruckBatchView
+              sessions={savedSessions}
+              adminConfig={adminConfig}
+              darkMode={darkMode}
+            />
+          )}
+
+          {/* TAB 3: FARMER SETTLEMENT VIEW (Chức Năng 5) */}
+          {activeTab === 'farmer_settlement' && (
+            <FarmerSettlementView
+              sessions={savedSessions}
+              adminConfig={adminConfig}
+              darkMode={darkMode}
+            />
+          )}
+
+          {/* TAB 4: HISTORY LIST */}
           {activeTab === 'history' && (
             <HistoryList
               sessions={savedSessions}
@@ -520,12 +540,12 @@ export default function App() {
             />
           )}
 
-          {/* TAB 3: AI AGRICULTURAL ADVISOR */}
+          {/* TAB 5: AI AGRICULTURAL ADVISOR */}
           {activeTab === 'ai_advisor' && (
             <AiAdvisor darkMode={darkMode} />
           )}
 
-          {/* TAB 4: DASHBOARD REPORTING */}
+          {/* TAB 6: DASHBOARD REPORTING */}
           {activeTab === 'dashboard' && (
             <DashboardView
               sessions={savedSessions}
@@ -537,7 +557,7 @@ export default function App() {
             />
           )}
 
-          {/* TAB 5: YIELD CALCULATOR PAGE */}
+          {/* TAB 7: YIELD CALCULATOR PAGE */}
           {activeTab === 'yield' && (
             <div className="space-y-4">
               <div className={`p-6 rounded-3xl border shadow-xl ${
@@ -559,7 +579,7 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 6: ADMIN PORTAL DASHBOARD */}
+          {/* TAB 8: ADMIN PORTAL DASHBOARD */}
           {activeTab === 'admin' && currentUser?.role === 'admin' && (
             <AdminPortal
               config={adminConfig}
@@ -572,7 +592,7 @@ export default function App() {
             />
           )}
 
-          {/* TAB 7: RECEIPT VIEW */}
+          {/* TAB 9: RECEIPT VIEW */}
           {activeTab === 'receipt' && selectedReceiptSession && (
             <ReceiptView
               session={selectedReceiptSession}

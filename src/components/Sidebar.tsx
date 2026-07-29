@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { User, AdminConfig } from '../types';
 
 interface SidebarProps {
-  activeTab: 'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard' | 'admin';
-  setActiveTab: (tab: 'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard' | 'admin') => void;
+  activeTab: 'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard' | 'admin' | 'truck_batch' | 'farmer_settlement';
+  setActiveTab: (tab: 'weighing' | 'history' | 'ai_advisor' | 'yield' | 'receipt' | 'dashboard' | 'admin' | 'truck_batch' | 'farmer_settlement') => void;
   bagCount: number;
   historyCount: number;
   currentUser: User | null;
@@ -38,6 +38,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: '⚖️',
       badge: bagCount > 0 ? `${bagCount} bao` : null,
       badgeColor: 'bg-emerald-500 text-slate-950',
+    },
+    {
+      id: 'truck_batch',
+      label: 'Chuyến Xe Nhận Lúa',
+      icon: '🚛',
+    },
+    {
+      id: 'farmer_settlement',
+      label: 'Quyết Toán Nông Dân',
+      icon: '🤝',
     },
     {
       id: 'history',
@@ -219,7 +229,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-3 border-t border-emerald-800/60 flex items-center justify-between text-xs text-emerald-200/80">
           {!collapsed && (
             <div className="text-[10px]">
-              <p className="font-bold text-white">AppCanLua v3.0</p>
+              <p className="font-bold text-white">AppCanLua v3.5</p>
               <p className="italic">Xanh Nông Nghiệp HTX</p>
             </div>
           )}

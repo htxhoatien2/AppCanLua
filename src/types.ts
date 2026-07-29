@@ -19,6 +19,7 @@ export interface WeighingSession {
   farmerPhone?: string;
   truckInfo: string; // Xe nhận / Biển số xe
   truckPhone?: string;
+  truckBatchId?: string; // Mã chuyến xe tải gom lúa (nếu có)
   location?: string; // Cánh đồng / Điểm cân
   riceType: string;
   unitPrice: number; // đ/kg
@@ -62,6 +63,37 @@ export interface CalculatedTotals {
   minBagWeight: number;
   maxBagWeight: number;
   moistureDeductionKg?: number;
+}
+
+export interface TruckBatch {
+  id: string;
+  batchCode: string; // Mã chuyến xe (chuyến #01, #02...)
+  truckInfo: string; // Xe nhận / Biển số xe
+  driverName?: string;
+  date: string;
+  sessionIds: string[]; // Danh sách mã phiếu cân trên chuyến xe này
+  totalBags: number;
+  totalGrossKg: number;
+  totalNetKg: number;
+  totalAmount: number;
+  status: 'loading' | 'completed' | 'delivered';
+  createdAt: string;
+  note?: string;
+}
+
+export interface FarmerSettlement {
+  farmerName: string;
+  farmerPhone?: string;
+  sessions: WeighingSession[];
+  totalBags: number;
+  totalNetKg: number;
+  totalRiceMoney: number;
+  seedCost: number; // Tiền lúa giống HTX ứng trước
+  fertilizerCost: number; // Tiền phân bón ứng trước
+  harvestMachineCost: number; // Tiền máy gặt đập liên hợp
+  depositDeduction: number; // Tiền cọc đã nhận
+  finalNetPayable: number; // SỐ TIỀN THỰC NHẬN RÒNG CUỐI VỤ
+  settlementDate: string;
 }
 
 export interface RiceVariety {
